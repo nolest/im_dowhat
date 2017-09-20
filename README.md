@@ -63,20 +63,20 @@
     ```
     * php服务器请求
     ```javascript
-    	$http.post
+        $http.post
     ```
     * im服务器请求
     ```javascript
-    	api_request
+        api_request
     ```
     * 发送消息（文字、图片、自定义消息类型、语音、服务卡片等、表情）
     ```javascript
-    	send_request
-    	base_send_parame
-    	send
-    	emoji
-    	input_pic
-    	choose_face
+        send_request
+        base_send_parame
+        send
+        emoji
+        input_pic
+        choose_face
     ```
     * 历史记录
     ```javascript
