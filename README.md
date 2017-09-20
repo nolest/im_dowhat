@@ -80,14 +80,14 @@
     ```
     * 历史记录
     ```javascript
-    	fetch_history
-    	get_history_more
+        fetch_history
+        get_history_more
     ```
     * 日常用语增删
     ```javascript
-    	options_words
-    	options_words_send
-    	go_to_edit_word
+        options_words
+        options_words_send
+        go_to_edit_word
     ```
     * 商品列表
     ```javascript
