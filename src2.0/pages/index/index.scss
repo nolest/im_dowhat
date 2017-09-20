@@ -1,0 +1,381 @@
+.pagemain{
+	background:#fff;
+
+	.container{
+      position: relative;
+		height:100%;
+		width:100%;
+		.list{
+          background: #2e3238;
+          color:#fff;
+			width:30%;
+			border-right: 1px solid #ccc;
+          .agent_list{
+            border-right: 1px solid #f2f2f2;
+            .empty{
+              height: 45px;
+            }
+            .agent_item{
+              padding: 5px 0px 5px 15px;
+              overflow: hidden;
+              height: 45px;
+              cursor: pointer;
+              word-break: break-all;
+              &:hover{
+                background:#3a3f45;
+              }
+              .red{
+
+                background: red;
+                padding: 8px;
+                border-radius: 50%;
+                margin-right: 5px;
+              }
+            }
+          }
+          .service_list{
+            overflow-y: scroll;
+            .service_add{
+              height: 45px;
+              border-bottom: 1px solid #ccc;
+              .add{
+                cursor: pointer;
+              }
+              .inps{
+                width: 80px;
+              }
+              .inner{
+                width: 80px;
+              }
+            }
+            .service_item{
+              padding: 5px 0px 5px 15px;
+              overflow: hidden;
+              height: 45px;
+              cursor: pointer;
+              word-break: break-all;
+
+              &:hover{
+                background: #3a3f45;
+              }
+              .red{
+                font-size: 12px;
+                line-height: 12px;
+                height: 12px;
+                min-width: 12px;
+                text-align: center;
+                background: red;
+                padding: 5px 5px;
+                border-radius: 50%;
+                color: #fff;
+                margin-right: 5px;
+              }
+            }
+          }
+		}
+      .window{
+        background: #f2f2f2;
+        .title{
+          height: 45px;
+          border-bottom: 1px solid #ccc;
+        }
+        .body{
+          overflow-y: scroll;
+          border-bottom: 1px solid #ccc;
+          padding-top: 5px;
+          .history_more{
+            margin-bottom: 5px;
+            color:rgb(39,134,228);
+            font-size: 14px;
+            cursor: pointer;
+            &:hover{
+              text-decoration: underline;
+            }
+          }
+          .message{
+            .each{
+              .head{
+                padding-left: 5px;
+              }
+              .content{
+                margin-top: 8px;
+                margin-bottom: 8px;
+                padding-left: 20px;
+                .detail_btn{
+                  text-align: center;
+                  width: 100px;
+                  padding: 5px 15px;
+                  background: #c3325f;
+                  color: #fff;
+                }
+                &.custom{
+                    padding-top:10px;
+                    padding-bottom: 10px;
+                    background: #fff;
+                    border: 1px dotted #ccc;
+                  .accept{
+                    padding: 5px 10px;
+                    background: rgb(0,128,64);
+                    color: #fff;
+                    margin-right: 10px;
+                    cursor: pointer;
+                  }
+                  .deny{
+                    padding: 5px 10px;
+                    background: #c3325f;
+                    color: #fff;
+                    cursor: pointer;
+                  }
+                }
+              }
+            }
+
+            .agent{
+              .head{
+                color: rgb(0,128,64);
+              }
+            }
+            .service{
+              .head{
+                color: blue;
+              }
+            }
+          }
+        }
+        .options{
+          height:45px;
+          border-bottom: 1px solid #ccc;
+          .options_inner{
+            padding: 0 15px;
+            cursor: pointer;
+            &:hover{
+              background: #ccc;
+
+            }
+            .pic{
+              position: absolute;
+              right: 0;
+              top: 0;
+              font-size: 0px;
+              width: 62px;
+              height: 40px;
+              opacity: 0;
+              cursor: pointer;
+            }
+          }
+          .options_service{
+            position: absolute;
+            top: -272px;
+            left: 15px;
+            height: 274px;
+            width: 482px;
+            background: #fff;
+            border: 1px solid #dedede;
+            overflow-y: scroll;
+            .options_items{
+              min-height: 56px;
+              border-bottom: 1px solid #dedede;
+              padding: 10px 0;
+              margin: 0 15px;
+              color: #333;
+              .info-con{
+                font-size: 13px;
+                margin-left: 10px;
+                .service_title{
+                  font-size: 16px;
+                  font-weight: 600;
+                }
+                .p-g-con{
+                  margin-top: 4px;
+                  .prices{
+                    color: #f60;
+                    padding-right: 10px;
+                  }
+                  .goods_id{
+                    padding: 0 10px;
+                  }
+                }
+              }
+              .service_btn{
+                width: 50px;
+                text-align: center;
+                font-size: 12px;
+                .ways{
+                  background: #2e3238;
+                  text-align: center;
+                  cursor: pointer;
+                  color: #fff;
+                }
+              }
+            }
+          }
+          .options_words{
+            position: absolute;
+            top: -272px;
+            left: 40px;
+            height: 274px;
+            width: 482px;
+            background: #fff;
+            border: 1px solid #dedede;
+            .head{
+              height: 40px;
+              border-bottom: 1px solid #ccc;
+              font-size: 14px;
+              .options_items{
+                display: inline-block;
+                padding: 0 15px;
+                line-height: 40px;
+                cursor: pointer;
+                &:hover{
+                  background: #c3c3c3;
+                }
+              }
+            }
+            .words_body{
+              overflow-y: scroll;
+              .options_cur_item{
+                padding: 5px 0px;
+                min-height: 40px;
+                line-height: 20px;
+                border-bottom: 1px solid #e2e2e2;
+                .left{
+                  padding-left: 15px;
+                  word-break: break-all;
+                }
+                .words_send{
+                  background: #2e3238;
+                  cursor: pointer;
+                  color: #fff;
+                  font-size: 12px;
+                  padding: 5px 15px;
+                  margin: 0px 15px;
+                }
+              }
+            }
+          }
+          .options_face{
+            position: absolute;
+            top: -272px;
+            left: 15px;
+            height: 274px;
+            width: 496px;
+            background: #fff;
+            border: 1px solid #dedede;
+            overflow: auto;
+            font-size: 0;
+            .face_item{
+              display: inline-block;
+              width: 30px;
+              height: 30px;
+              border-right: 1px solid #d3e4dc;
+              border-bottom: 1px solid #d3e4dc;
+              cursor: pointer;
+            }
+          }
+          .end_session{
+            padding: 0px 15px;
+            cursor: pointer;
+          }
+        }
+        .enter{
+          height: 150px;
+          .text{
+            display: block;
+            width: 100%;
+            height: 100%;
+            font-size: 14px;
+            border: 0;
+            border-bottom: 1px solid #ccc;
+            resize: none;
+            outline: 0;
+            padding-left: 20px;
+            background: none;
+          }
+        }
+        .send{
+          height: 45px;
+          .btn{
+            border-radius: 4px;
+            background: #163758;
+            width: 100px;
+            height: 30px;
+            color: #fff;
+            cursor: pointer;
+            &:hover{
+              background: #0055aa;
+            }
+          }
+        }
+      }
+      .fade_content{
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        background: rgba(0,0,0,0.7);
+        .login{
+          background: #fff;
+          border-radius: 4px;
+          .login_head{
+            font-size: 18px;
+            font-weight: 600;
+            border-bottom: 1px solid #ccc;
+            padding: 15px;
+          }
+          .login_body{
+            padding: 15px;
+            border-bottom: 1px solid #ccc;
+            .login_type{
+              width: 116px;
+              height: 116px;
+              border: 2px solid #fff;
+              border-radius: 4px;
+              cursor: pointer;
+              &.cur{
+                border: 2px solid dodgerblue;
+              }
+            }
+          }
+          .login_bot{
+            padding: 15px;
+            .login_type_2{
+              height: 32px;
+              border: 2px solid #fff;
+              border-radius: 4px;
+              cursor: pointer;
+              &.cur{
+                border: 2px solid palevioletred;
+              }
+            }
+
+          }
+          .login_form{
+            background: #f2f2f2;
+            padding: 10px 15px 10px 5px;
+            .form_inner{
+              margin-left: 10px;
+              input{
+                width: 140px;
+                height: 30px;
+                border: none;
+                font-size: 16px;
+                padding-left: 10px;
+                outline: none;
+              }
+            }
+            .btn{
+              background: #fff;
+              width: 76px;
+              height: 76px;
+              border: 2px solid lightseagreen;
+              cursor: pointer;
+              &:hover{
+                border: 2px solid #fff;
+                background: lightseagreen;
+                color: #fff;
+              }
+            }
+          }
+        }
+      }
+	}
+}

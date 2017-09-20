@@ -1,0 +1,1470 @@
+<html>
+<head>
+    <title>聊天测试</title>
+    <meta charset="GB2312">
+    <link type="text/css" href="../../util/mobileBase.css" rel="stylesheet"/>
+    <link type="text/css" href="../../util/reset.css" rel="stylesheet"/>
+    <link type="text/css" href="./announce.css?1" rel="stylesheet"/>
+    <script src="../../lib/mod.js"></script>
+    <script src="../../lib/vue.js"></script>
+    <script src="../../lib/vue-resource.min.js"></script>
+    <script src="../../lib/hashes.min.js"></script>
+    <script src="../../lib/inflate.min.js"></script>
+    <script src="../../lib/mqttws31.js"></script>
+    <script src="../../lib/IMSDK_dw.js"></script>
+    <script src="../../modules/message/message_dw.js"></script>
+    <script src="../../lib/promise-6.1.0.js"></script>
+    <script src="http://gosspublic.alicdn.com/aliyun-oss-sdk.min.js"></script>
+</head>
+<body>
+<div class="pagemain" id="pagemain" v-cloak>
+    <div class="ds-box container">
+        <div class="ds-box orient-v list ">
+            <div class="ds-box empty"></div>
+            <div class="ds-box meeting_list flex-1 orient-v">
+                <div class="ds-box meeting_item" :class="{cur : group_status.group_id == item.group_id}" v-for="(item,index) in meeting_list" @click.stop="go_to_meeting(item.group_id,item.live_status,item)">
+                    <div class="" style="font-size:0">
+                        <img :src="item.image" style="border-radius:4px;width:60px;height:60px">
+                    </div>
+                    <div class="ds-box details flex-1 orient-v">
+                        <div class="ds-box" style="font-weight: 600;">{{ item.description }}</div>
+                        <div class="ds-box">{{ item.live_show_str }}</div>
+                        <div class="ds-box">用户id:{{ item.user.user_id }}</div>
+                        <div class="ds-box name">用户名称:{{ item.user.nickname }}</div>
+                        <div class="ds-box">在线人数:{{ item.join_num }}</div>
+                        <div class="ds-box btn" :class="{ 'fn-hide ' : !item.group_id }">
+                            <div class="inn silence no-u-s" @click.stop="silence(item)">禁言</div>
+                            <div class="inn silence no-u-s" @click.stop="silence(item,'release')">解除禁言</div>
+                            <div class="inn announce no-u-s" @click.stop="announce(item.share)">公告</div>
+                        </div>
+                    </div>
+                    <div class="tag">{{ item.live_status_str }}</div>
+                </div>
+            </div>
+            <div class="ds-box pack-center align-center list_more no-u-s" :class="{ 'fn-hide' : !meeting_has_next }" @click.stop="list_more">加载更多</div>
+        </div>
+        <div class="ds-box orient-v flex-1 window">
+            <div class="ds-box align-center pack-justify title">
+                <div class="ds-box meeting_id">
+                    <div :class="{ 'fn-hide': !group_status.description }">{{ group_status.description }}</div>
+                    <div :class="{ 'fn-hide': !group_status.user.user_id }">{{ '<'+ 'id:' + group_status.user.user_id + '>'}}</div>
+                    <div :class="{ 'fn-hide': !group_status.group_id}">{{ '<'+ 'gr:' + group_status.group_id + '>'}}</div>
+                </div>
+                <div class="drop no-u-s" @click.stop="switch_anno">查看公告</div>
+            </div>
+            <div class="ds-box flex-1 orient-v body">
+                <div class="ds-box switch_anno_panel_normal" :class="{ 'open':switch_anno_panel}">
+                    <div class="ds-box orient-v detail pack-justify flex-1" :class="{ 'fn-hide': !group_info }" >
+                        <div>{{ group_info.notice.description }}</div>
+                        <div class="ds-box" v-for="(item,index) in group_info.notice.detail">
+                            <div>{{ item.title}}</div>
+                            <div>{{ item.value}}</div>
+                        </div>
+                        <div>备注：{{ group_info.remark }}</div>
+                    </div>
+                    <div class="ds-box pack-center align-center right_con" style="font-size: 0">
+                        <img :src="group_info.notice.image" style="width:150px;height:150px"/>
+                    </div>
+                </div>
+                <div class="ds-box flex-1 orient-v message_con">
+                    <div class="ds-box pack-center history_more" :class="{ 'fn-hide':!history_more }" @click.stop="get_history_more">查看更多消息</div>
+                    <div class="message" v-for="(item, index) in window_message_list">
+                        <window-message :message="item" :client="client_type" :user_id="user_id" :mark="order_success_mark" @conver_audio="get_audio"></window-message>
+                    </div>
+                </div>
+            </div>
+            <div class="ds-box options" style="position: relative">
+                <div class="ds-box pack-center align-center options_inner" v-for="(item, index) in options" @click.stop="options_service(index)" style="position:relative">
+                    <div v-if="item.type == 'file'">
+                        <input type="file" @change="input_pic($event)" class="pic"/>
+                        <div>图片</div>
+                    </div>
+                    <div class="no-u-s" v-else>{{ item.name }}</div>
+                </div>
+                <div class="ds-box orient-v options_face" :class="{ 'fn-hide':!options[1].cur }">
+                    <div class="face_item" v-for="(item, key, index) in emoji_list" @click.stop="choose_face(item)"><img :src="'../../image/emoji/' + key + '.png'" style="width: 30px;height: 30px;"/></div>
+                </div>
+                <div class="ds-box orient-v options_service" :class="{ 'fn-hide':!options[2].cur }" >
+                    <div class="ds-box align-center album_head fn-hide">
+                        <div class="ds-box al_img_con pack-center align-center">
+                            <div></div>
+                        </div>
+                    </div>
+                    <div class="ds-box flex-1">
+                        <div class="ds-box album_list orient-v">
+                            <div class="ds-box album_list_item" :class="{ 'cur':index === album_creations_index }" v-for="(item,index) in album_list" @click="choose_album(item.album_id,index)">
+                                <div class="ds-box align-center fn-hide" style="font-size: 0;padding: 0px 15px;">
+                                    <img :src="item.cover" style="width:60px;height: 60px;border-radius: 4px;"/>
+                                </div>
+                                <div class="ds-box orient-v pack-center">
+                                    <div>{{ item.title }} </div>
+                                    <div>{{ item.resource_level }}</div>
+                                    <div>{{ item.total_str }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ds-box orient-v album_creations_list flex-1">
+                            <div class="ds-box album_creations_list_item align-center" v-for="(item,index) in album_creations_list">
+                                <div class="ds-box align-center" style="font-size: 0">
+                                    <img :src="item.image" style="width: 60px;height: 60px;border-radius: 4px;"/>
+                                </div>
+                                <div class="ds-box orient-v pack-center flex-1" style="padding-left: 10px;">
+                                    <div style="word-break: break-all">{{ item.title }}</div>
+                                    <!--div>{{ item.description }}</div-->
+                                    <div class="ds-box">
+                                        <div style="margin-right: 10px;">{{ item.price_str }}</div>
+                                        <div>{{ item.add_time }}</div>
+                                    </div>
+                                </div>
+                                <div class="ds-box pack-center align-center ways no-u-s" @click.stop="resource_send(item)">发送</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ds-box pack-center align-center options_inner no-u-s" @click.stop="silence_in_bar">禁言</div>
+                <div class="ds-box pack-center align-center options_inner no-u-s" @click.stop="silence_in_bar('release')">解除禁言</div>
+                <div class="ds-box pack-center align-center options_inner no-u-s" @click.stop="end_meeting">结束直播</div>
+            </div>
+            <div class="ds-box enter">
+                <textarea class="text" v-model="text_area" @keydown.ctrl.enter="send('text')" @keydown.191="emoji" @keyup="textarea_change($event)"></textarea>
+            </div>
+            <div class="ds-box pack-end align-center send">
+                <div class="ds-box align-center pack-center btn" @click.stop="send('text')">ctrl+enter 发送</div>
+            </div>
+        </div>
+        <div class="ds-box pop orient-v">
+            <div class="ds-box pop_head">
+                <div class="ds-box pack-center align-center flex-1 no-u-s" v-for="(item,index) in side_bar" :class="{ 'cur' : index == side_bar_index }" @click.stop="switch_pop(index)">{{ item.name }}</div>
+            </div>
+            <div class="ds-box align-center follow_box">
+                <input type="checkbox" id="follow" value="follow" v-model="follow_pop">
+                <label class="ds-box" for="follow">弹幕跟随</label>
+            </div>
+            <div class="ds-box orient-v pop_body flex-1" :class="{ 'fn-hide':side_bar_index != 0}" id="container">
+                <div class="ds-box orient-v pop_item" v-for="(item,index) in pop_list">
+                    <div>{{ item.sender }}:</div>
+                    <div class="pop_item_content flex-1" :style="{ color : item.c_str }">{{ item.items.txt_content }}</div>
+                </div>
+            </div>
+            <div class="ds-box pop_body flex-1 orient-v" :class="{ 'fn-hide':side_bar_index != 1}">
+                <div class="ds-box flex-1 orient-v" style="overflow: auto;border-bottom: 1px solid #ccc;">
+                    <div class="ds-box group_member_list_item" v-for="(item,index) in group_member_list">
+                        <div class="ds-box orient-v align-center" style="font-size: 0;width: 62px;">
+                            <img :src="item.user_icon" style="width: 30px;height: 30px;border-radius: 15px;margin: 0px 10px;margin-bottom: 2px;"/>
+                            <div v-if="item.silence == 1">
+                                <div class="ds-box pack-center align-center status silence" style="font-size: 12px">已禁言</div>
+                            </div>
+                            <div v-else-if="item.silence == 0">
+                                <div class="ds-box pack-center align-center status no_silence" style="font-size: 12px">未禁言</div>
+                            </div>
+                            <div v-else>
+                                <div class="ds-box pack-center align-center status unknown" style="font-size: 12px">未知</div>
+                            </div>
+                            <div class="role" style="font-size: 12px" v-if="item.user_role == 'admin'">讲师</div>
+                            <div class="role" style="font-size: 12px" v-else-if="item.user_role == 'manager'">管理员</div>
+                            <div class="role" style="font-size: 12px" v-else-if="item.user_role == 'member'">学员</div>
+                            <div class="role" style="font-size: 12px" v-else="item.user_role == 'member'">{{ item.user_role }}</div>
+                        </div>
+                        <div class="ds-box flex-1 orient-v pack-justify">
+                            <div>{{ item.nickname }}</div>
+                            <div>{{ item.user_id }}</div>
+                            <div class="ds-box align-center menber_control">
+                                <div class="inn silence no-u-s" @click.stop="silence_user(item,'',index)">禁言</div>
+                                <div class="inn silence no-u-s" @click.stop="silence_user(item,'release',index)">解除禁言</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ds-box pack-center align-center " :class="{ 'fn-hide' : !group_member_has_next }" @click.stop="load_more_menber" style="height: 45px;cursor: pointer;">加载更多</div>
+            </div>
+        </div>
+        <div class="ds-box fade_content pack-center align-center" :class="{ 'fn-hide' : !fade_content }" :style="{ width: window.width+ 'px', height: window.height + 'px' }">
+            <div class="ds-box orient-v login">
+                <div class="ds-box pack-center login_head">代理</div>
+                <div class="ds-box pack-justify align-center login_body">
+                    <div v-for="(item,index) in login_type" :class="login_type_index==index?'cur':''" class="ds-box pack-center align-center login_type" @click.stop="change_login_type(index)">{{ item.name }}</div>
+                </div>
+                <div class="ds-box pack-justify login_bot">
+                    <div v-for="(item,index) in login_type[login_type_index].role" :class="login_type_index_2==index?'cur':''" class="ds-box pack-center align-center login_type_2 flex-1" @click.stop="ok_login_type(index,login_type[login_type_index].str,item.ty)">{{ item.text }}</div>
+                </div>
+                <div class="ds-box pack-justify align-center login_form">
+                    <div class="ds-box orient-v pack-justify">
+                        <div class="ds-box form_inner"><input v-model="login_id" type="number" placeholder="约约ID"/></div>
+                        <div class="ds-box form_inner"><input v-model="login_pw" type="password" placeholder="约约密码"></div>
+                    </div>
+                    <div class="ds-box pack-center align-center btn" @click.stop="go_to_login">登录</div>
+                </div>
+                <div class="ds-box pack-center" style="color: RED;">*强烈推荐使用2017年*</div>
+                <div class="ds-box pack-center" style="color: RED;">*地球上最好用的浏览器*</div>
+                <div class="ds-box pack-center" style="color: RED;">*Chrome*</div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+
+    //	var client_type = 'client';//seller
+    //	var user_id = '100029';
+    //	var client_plat = 'web';
+    var MqttClient  = require('mqtt_client');
+    var urllib = OSS.urllib;
+    var OSS = OSS.Wrapper;
+    var STS = OSS.STS;
+    var app = new Vue({
+        el: '#pagemain',
+        computed: {
+            mqtt : function(){
+                return{
+                    mqtt_id : this.client_type +'/'+ this.user_id + '/' + this.client_plat + '/' + new Date().getTime(),
+                    username : this.client_type + '/' + this.user_id,
+                    password : JSON.stringify(this.auth)
+                }
+            }
+        },
+        data: {
+            login_type : [
+                { name:'干点啥',str:'water',role:[{text:'我是管理员',ty:'client'}]}
+            ],
+            login_type_index : 0,
+            login_type_index_2 : 0,
+            login_id : '',
+            login_pw : '',
+            agent_type : '',//agent water 商家代理 或 水军
+            //授权信息储存
+            client_type : '',
+            user_id : '',
+            client_plat : 'web',
+            port : 8983,
+            auth : {
+                access_key : '',
+                access_token : '',
+                expire_in : '',
+                identify : ''
+            },
+            host : {
+                connect : '//im-on.yueus.com',
+                send : '//im-send.yueus.com',
+                api : '//im-api.yueus.com',
+                audio : '//os-api.yueus.com'
+            },
+            host_wifi : {
+                connect : '//im-on-wifi.yueus.com',
+                send : '//im-send-wifi.yueus.com',
+                api : '//im-api-wifi.yueus.com',
+                audio : '//os-api-wifi.yueus.com'
+            },
+            //根据网络状况调整状态
+            host_current : {},
+            add_input : '',
+            picture : '',
+            text_area : '',
+            text_area_cursor : 0,
+            agent_temp_id : '',
+            agent_status : {
+                agent_id : '',
+                service_id : '',
+                agent_auth : ''
+            },
+            group_status : {
+                user : {}
+            },
+            group_info : {
+                notice : {
+                    description : '',
+                    detail : []
+                }
+            },
+            options : [{'name':'图片',cur:0,type: 'file'},{'name':'表情',cur:0,type: 'faces'},{'name':'私货',cur:0,type: 'service'}],
+            window_message_list : [],
+            history_more : false,
+            history_post : '',
+            options_service_list : [],
+            options_words_list : [],
+            options_words_cur_list : [],
+            OSS_client : {},
+            emoji_list:
+                {
+                    'kb-emoji-U+E057':'/憨笑',
+                    'kb-emoji-U+E106':'/色',
+                    'kb-emoji-U+E40E':'/奋斗',
+                    'kb-emoji-U+E40D':'/发呆',
+                    'kb-emoji-U+E404':'/咧牙',
+                    'kb-emoji-U+E418':'/示爱',
+                    'kb-emoji-U+E405':'/逗你',
+                    'kb-emoji-U+E059':'/左哼哼',
+                    'kb-emoji-U+E058':'/难过',
+                    'kb-emoji-U+E401':'/冷汗',
+                    'kb-emoji-U+E411':'/流泪',
+                    'kb-emoji-U+E409':'/扮鬼脸',
+                    'kb-emoji-U+E416':'/发怒',
+                    'kb-emoji-U+E406':'/晕',
+                    'kb-emoji-U+E40A':'/发愁',
+                    'kb-emoji-U+E417':'/亲亲',
+                    'kb-emoji-U+E108':'/流汗',
+                    'kb-emoji-U+E412':'/大哭',
+                    'kb-emoji-U+E056':'/可爱',
+                    'kb-emoji-U+E413':'/好?',
+                    'kb-emoji-U+E105':'/调皮',
+                    'kb-emoji-U+E40B':'/衰',
+                    'kb-emoji-U+E40F':'/好糗',
+                    'kb-emoji-U+E410':'/抓狂',
+                    'kb-emoji-U+E402':'/坏笑',
+                    'kb-emoji-U+E107':'/惊讶',
+                    'kb-emoji-U+E408':'/睡',
+                    'kb-emoji-U+E407':'/折磨',
+                    'kb-emoji-U+E00E':'/强',
+                    'kb-emoji-U+E421':'/弱',
+                    'kb-emoji-U+E00D':'/出拳',
+                    'kb-emoji-U+E010':'/拳头',
+                    'kb-emoji-U+E011':'/胜利',
+                    'kb-emoji-U+E41F':'/鼓掌',
+                    'kb-emoji-U+E230':'/向左',
+                    'kb-emoji-U+E22F':'/向右',
+                    'kb-emoji-U+E420':'/OK',
+                    'kb-emoji-U+E022':'/爱心',
+                    'kb-emoji-U+E023':'/心碎',
+                    'kb-emoji-U+E04A':'/太阳',
+                    'kb-emoji-U+E04C':'/月亮',
+                    'kb-emoji-U+E13D':'/闪电',
+                    'kb-emoji-U+E41C':'/嘴唇',
+                    'kb-emoji-U+E032':'/玫瑰',
+                    'kb-emoji-U+E045':'/咖啡',
+                    'kb-emoji-U+E34B':'/蛋糕',
+                    'kb-emoji-U+E047':'/啤酒',
+                    'kb-emoji-U+E112':'/礼物',
+                    'kb-emoji-U+E018':'/足球',
+                    'kb-emoji-U+E311':'/炸弹'
+                },
+            order_success_mark : '支付成功，请在',
+            meeting_page : 1,
+            meeting_has_next : true,
+            meeting_list : [],
+            switch_anno_panel : false,
+            album_list : [],
+            album_creations_index : '',
+            album_creations_head : {},
+            album_creations_list : [],
+            side_bar : [{ name : '弹幕',cur:true},{name:'成员',cur:false}],
+            side_bar_index : 0,
+            pop_list : [],
+            window : {
+                width: window.document.body.offsetWidth,
+                height:window.document.body.offsetHeight
+            },
+            fade_content : 1,
+            now_subscribe : '',
+            now_subscribe_barrage :'',
+            follow_pop : [],
+            group_member_page : 1,
+            group_member_list : [],
+            group_member_has_next : true,
+            change_subscribe_lock : false
+        },
+        mounted : function(){
+            var that = this;
+            //获取授权信息
+            var is_wifi = true;
+
+            if(window.localStorage.getItem('__Yueus__IM__index__id'))
+            {
+                that.login_id = window.localStorage.getItem('__Yueus__IM__index__id');
+            }
+            if(window.localStorage.getItem('__Yueus__IM__index__pw'))
+            {
+                that.login_pw = window.localStorage.getItem('__Yueus__IM__index__pw');
+            }
+
+            if(is_wifi){
+                that.host_current = that.host_wifi;
+            }
+            else{
+                that.host_current = that.host
+            }
+            window.onresize = function(e){
+                that.window.width = e.target.innerWidth;
+                that.window.height = e.target.innerHeight;
+            }
+        },
+        methods : {
+            'mqtt_auth' : function(){
+                //管理员mqtt授权
+                var that = this;
+                that.get_auth([that.user_id],
+                    function(res){
+                        console.log('1.获取代理号授权信息');
+                        console.log(res);
+                        var packages = res.body.res[0];
+                        if(packages.auth != -1) {
+                            that.auth.access_key = packages.auth.access_key;
+                            that.auth.access_token = packages.auth.access_token;
+                            that.auth.expire_in = packages.auth.expire_in;
+                            that.auth.identify = packages.auth.identify;
+                            that.auth.password = JSON.stringify(
+                                {
+                                    identify: packages.auth.identify + '',
+                                    expire: packages.auth.expire_in,
+                                    access_key: packages.auth.access_key,
+                                    access_token: packages.auth.access_token
+                                });
+                            that.options_words_list = packages.words_tags;
+                            //获取发布会列表
+                            that.get_meeting_list(function(res){
+                                console.log(res);
+                            },function(res){})
+                            that.mqtt_login();
+                            that.fade_content = 0;
+                        }
+                        else{
+                            alert('拉取授权信息失败，请重试')
+                        }
+                    },
+                    function(res){
+
+                    },that.client_type,'self');
+            },
+            get_auth : function(id_arr,success_cb,error_cb,type,self){
+                //根据id获取授权信息
+                //self='self':用于管理员拉取日常用语
+                var that = this;
+                that.$http.post(
+                    '//share.yueus.com/im/dest/ajax/account/get_token.php',
+                    {
+                        'yue_login_id' : id_arr,
+                        'self' : self == 'self'?'self':'',
+                        'type' : type,
+                        'agent_typ' : that.agent_type
+                    },
+                    {
+                        'emulateJSON' : true
+                    }).then(
+                    function(res){
+                        success_cb(res);
+                    },
+                    function(res){
+                        error_cb(res);
+                    });
+            },
+            calculate : function(func_name,params,time){
+                var that = this;
+                var SHA1 = new Hashes.SHA1;
+                return SHA1.hex('imcore' + func_name + JSON.stringify(params) + time + 'bodyauth');
+            },
+            mqtt_login : function(){
+                var that = this;
+                that.IMSDK = new MqttClient(this);
+                console.log(that.host_current.connect,that.port,that.client_type,that.user_id,that.auth.password)
+                that.IMSDK.login({
+                    hostname : that.host_current.connect,
+                    port : that.port,
+                    user_type : that.client_type,
+                    user_id : that.user_id,
+                    password : that.auth.password
+                })
+            },
+            login_success : function(){
+                //连接成功
+                console.log('2.mqtt链接成功');
+                console.log("连接成功")
+            },
+            connect_lost : function(){
+                console.log('连接断开')
+            },
+            message_receive : function(res){
+                //存进缓存，避免一个请求服务列表过程中接收到新消息的bug
+                var that = this;
+                console.log('收到消息');
+                console.log(res);
+                that.resolve_new_receive(res);
+            },
+            resolve_new_receive : function(res){
+                var that = this;
+                var pkg = res;
+                console.log(res)
+
+                if(res.to + '/' + res.peer == that.now_subscribe){
+                    that.window_message_list.push(pkg);
+                }
+                else if(res.to + '/' + res.peer == that.now_subscribe_barrage){
+                    pkg.c_str = 'rgb(238,' + Math.floor(Math.random()*255) + ',' + Math.floor(Math.random()*255) +')';
+                    that.pop_list.push(pkg);
+                    setTimeout(function(){
+                        if(that.follow_pop.length == 0){
+
+                        }
+                        else{
+                            var container = that.$el.querySelector("#container");
+                            container.scrollTop = container.scrollHeight//container.scrollTop;
+                        }
+                    },100);
+
+                }
+                else if(res.type == 'group_state' ){
+
+                    that.window_message_list.push(pkg);
+                }
+                else{
+                    console.log('收到未处理消息');
+                }
+
+            },
+            onSubscribe : function(res,topic){
+                var that = this;
+                console.log('订阅成功，获取未读消息');
+                console.log(res);
+                that.now_subscribe = topic;
+                that.change_subscribe_lock = false;
+//                for(var i = 0 in res){
+//                    that.resolve_new_receive(res[i]);
+//                }
+            },
+            onSubscribe_barrage : function(res,topic){
+                var that = this;
+                console.log('订阅弹幕成功，获取未读消息');
+                console.log(res);
+                that.now_subscribe_barrage = topic;
+//                for(var i = 0 in res){
+//                    that.resolve_new_receive(res[i]);
+//                }
+            },
+            delete_message : function(none, chat_id, peer_seq){
+                var that = this;
+                that.IMSDK.deleteMessage(none, chat_id, peer_seq);
+            },
+            choose_album : function (album_id,index) {
+                var that = this;
+                //that.album_creations_head = {}; //重置头
+                that.album_creations_index = index;
+                that.album_creations_list = [];
+                that.fetch_creations_info(album_id)
+            },
+            switch_anno : function(){
+                console.log(123123312);
+                var that = this;
+                that.switch_anno_panel?
+                    function(){
+                        that.switch_anno_panel = false
+                    }()
+                    :
+                    function(){
+                        if(that.group_status.group_id){
+                            that.get_group_info();
+                            that.switch_anno_panel = true;
+                        }
+                        else{
+                            alert('未选择分享会(无id)')
+                        }
+                    }()
+
+            },
+            api_request : function(auth,func_name,params,success_cb,error_cb,audio){
+                if(!func_name){
+                    console.log('api_func_name错误')
+                }
+                var that = this;
+                var time = Math.floor(Date.now() / 1000);
+                var sign = this.calculate(func_name,params,time);
+
+
+                var api_host = audio || that.host_current.api;
+                console.log(audio);
+                console.log(auth);
+                var url = api_host + func_name + '?expire=' + auth.expire_in + '&identify=' + auth.identify + '&access_key=' + auth.access_key + '&access_token=' + auth.access_token;
+                console.log(url);
+                this.$http.post(
+                    url,
+                    {
+                        "time" : time,
+                        "sign" : sign,
+                        "params" : params
+                    },
+                    {
+                        'emulateJSON' : false,
+                        headers : {'Content-Type': 'application/json'}
+                    }).then(
+                    function(res){
+                        success_cb(res);
+                    },
+                    function(res){
+                        error_cb(res);
+                    });
+            },
+            send_request : function(message,success_cb,error_cb){
+                var func_name = '/imcore/sender';
+                var that = this;
+                var time = Math.floor(Date.now() / 1000);
+                var params = {
+                    "mode": "normal",
+                    "retain": 0,
+                    "message": message,
+                    "notify_addon": {},
+                    "environment": {}
+                };
+                var sign = this.calculate(func_name,params,time);
+
+                var api_host = that.host_current.send;
+                var auth = that.auth;
+
+                console.log(auth)
+                var url = api_host + func_name + '?expire=' + auth.expire_in + '&identify=' + auth.identify + '&access_key=' + auth.access_key + '&access_token=' + auth.access_token;
+                this.$http.post(
+                    url,
+                    {
+                        "time" : time,
+                        "sign" : sign,
+                        "params" : params
+                    },
+                    {
+                        'emulateJSON' : false,
+                        headers : {'Content-Type': 'application/json'}
+                    }).then(
+                    function(res){
+                        success_cb(res);
+                        var obj = {
+                            from : that.client_type,
+                            items : message.items,
+                            msg_id : res.data.msg_id,
+                            peer : that.agent_status.service_id,
+                            peer_seq : res.data.peer_seq,
+                            sender : that.agent_status.agent_id,
+                            time : res.data.time,
+                            to : that.client_type == 'client'?'client':'client',
+                            type : message.type
+                        };
+                        console.log(obj);
+                        //that.window_message_list.push(obj); //自己发出的会收回，不用模拟
+                    },
+                    function(res){
+                        error_cb(res);
+                    });
+            },
+            go_to_meeting : function(group_id,live_status,item){
+                var that = this;
+                console.log('go_to_meeting')
+                console.log(item)
+                that.history_more = false;
+                if(!that.change_subscribe_lock){
+                    //======================设置当前group状态===========================
+                    that.group_status = item; //存入当前对象
+                    //======================设置当前group状态end========================
+
+                    //======================清空公告===========================
+                    that.group_info ={
+                        notice : {
+                            description : '',
+                            detail : []
+                        }
+                    };
+                    //======================清空公告end========================
+
+                    //======================拉取新公告===========================
+                    if(that.group_status.group_id){
+
+                        that.get_group_info();
+                    }
+                    //======================拉取新公告end========================
+
+                    that.window_message_list = [];
+                    that.pop_list = [];
+
+                    //======================更改订阅===========================
+                    var go_subscribe = false;//设置订阅开关
+                    if(that.now_subscribe){
+                        //已订阅，(有group_id)更新订阅
+                        that.change_subscribe_lock = true;
+                        go_subscribe = true;
+                        that.IMSDK.unsubscribe(that.now_subscribe,function(old){
+                            console.log('已取消订阅' + old);
+
+
+                        })
+                    }
+                    else if(group_id){
+                        //未订阅，且有group_id
+                        that.change_subscribe_lock = true;
+                        go_subscribe = true;
+                    }
+                    else{
+                        //异常：未订阅，无group_id
+                        console.log('group_id非法')
+                        that.change_subscribe_lock = false;
+                    }
+
+                    //======================拉聊天记录===========================
+                    that.fetch_history(5,
+                        function(res,list,has_next){
+                            that.window_message_list = JSON.parse(JSON.stringify(list));
+                            if(list.length){
+                                console.log(that.auth);
+                                console.log(that.client_type+ '/' +that.auth.identify, list[list.length-1].peer_seq)
+                                that.delete_message({}, that.client_type+ '/' +that.auth.identify, list[list.length-1].peer_seq)
+                            }
+                            else{
+
+                            }
+
+                            //that.delete_message({}, that.client_type+ '/' +that.auth.identify, the_last.peer_seq);
+                            //msg_data.to + '/' + msg_data.peer, msg_data.peer_seq
+                            if(has_next){
+                                that.history_more = true;
+                            }
+                            console.log('拉取历史')
+                            if(go_subscribe){
+                                that.IMSDK.subscribe('group/'+ group_id);
+                                that.IMSDK.subscribe('group/'+ item.barrage_group_id,true);
+                                console.log(item);
+                            }
+                        },
+                        function(res){
+
+                        });
+                    //======================拉聊天记录end===========================
+
+
+                    //======================清空私货状态===========================
+                    that.album_list = [];
+                    that.album_creations_index = '';
+                    that.album_creations_list = [];
+                    //======================清空私货状态end===========================
+
+
+
+                    //======================拉私货列表===========================
+
+                    var request_id = that.group_status.user.user_id;
+                    that.fetch_treasure_list(request_id,
+                        function(g_res){
+                            console.log('拉取服务列表',request_id)
+                            console.log(g_res)
+                            var album_num = g_res.body.res.data.total;
+                            that.album_list = g_res.body.res.data.list;
+                            //that.options_service_list = g_res.body.res.data.list
+                        },
+                        function(res){
+                            console.log(res)
+                        })
+                    //======================拉私货列表end===========================
+
+                    //======================拉取用户列表===========================
+                    that.group_member_page = 1;
+                    that.group_member_list = [];
+                    that.group_member_has_next = true;
+                    that.get_group_members()
+                    //======================拉取用户列表end===========================
+                }
+                else{
+
+                }
+
+//                if(that.group_status.live_status == '1'){
+//                    console.log(that.group_status.group_id);
+//                }
+            },
+            silence : function(item,type){
+                var that = this;
+                console.log('silence');
+                console.log(item);
+                that.meeting_group_operate({
+                    group_id : item.group_id ,
+                    operate: type == 'release'?'silence_off':'silence_on'
+                });
+            },
+            silence_user : function(item,type,index){
+                var that = this;
+                console.log('silence');
+                console.log(item);
+                that.meeting_group_operate({
+                    group_id : that.group_status.group_id ,
+                    operate: type == 'release'?'unblock':'block',
+                    target_id : item.user_id
+                },
+                function(res){
+                    if(res.body.res.data.result == '1'){
+                        var temp = JSON.parse(JSON.stringify(that.group_member_list));
+                        switch (type){
+                            case 'release' : temp[index].silence = 0;break;
+                            case '' : temp[index].silence = 1;break;
+                            default : temp[index].silence = 'unknow';break;
+                        }
+                        that.group_member_list = temp;
+                    }
+                });
+            },
+            announce : function (share_obj) {
+                var that = this;
+                console.log('announce')
+                console.log(share_obj);
+                window.open('http://share.yueus.com/manage/share_admin/share_meeting_edit.php?action=editview&share_id=' + share_obj.share_id);
+            },
+            silence_in_bar : function(type){
+                var that = this;
+                if(that.group_status.group_id){
+                    that.meeting_group_operate({
+                        group_id : that.group_status.group_id ,
+                        operate: type == 'release'?'silence_off':'silence_on'
+                    });
+                }
+                else{
+                    alert('未选择分享会')
+                }
+
+            },
+            end_meeting :function(){
+                var that = this;
+                if(that.group_status.group_id){
+                    that.meeting_operate({
+                        group_id : that.group_status.group_id ,
+                        share_id : that.group_status.share_id ,
+                        operate : 'close'
+                    })
+                }
+                else{
+                    alert('未选择分享会')
+                }
+            },
+            meeting_operate: function(options,success_cb,error_cb){
+                var that = this;
+                var group_id = options.group_id || false;
+                var success_cb = success_cb || function(){};
+                var error_cb = error_cb || function(){};
+                var operate = options.operate || false;
+                var share_id = options.share_id || '';
+
+                if (confirm("确认该操作?" + '<' + operate + '>')){
+                    var url = '../../ajax/room/meeting_operate.php';
+                    if(!group_id || !operate)return;
+                    that.$http.post(
+                        url,
+                        {
+                            'user_id' : that.user_id,
+                            'group_id' : group_id,
+                            'operate' : operate,
+                            'share_id' : share_id
+                        },
+                        {
+                            'emulateJSON' : true
+                        }).then(
+                        function(res){
+                            console.log(res);
+                            alert(res.body.res.data.message + '(' + res.body.res.data.result +')');
+                            success_cb(res);
+                        },
+                        function(res){
+                            error_cb(res);
+                        });
+                }
+            },
+            meeting_group_operate: function(options,success_cb,error_cb){
+                var that = this;
+                var group_id = options.group_id || false;
+                var success_cb = success_cb || function(){};
+                var error_cb = error_cb || function(){};
+                var operate = options.operate || false;
+                var target_id = options.target_id || '';
+
+                if (confirm("确认该操作?" + '<' + operate + '>')){
+                    var url = '../../ajax/room/meeting_group_operate.php';
+                    if(!group_id || !operate)return;
+                    that.$http.post(
+                        url,
+                        {
+                            'user_id' : that.user_id,
+                            'group_id' : group_id,
+                            'operate' : operate,
+                            'target_id' : target_id
+                        },
+                        {
+                            'emulateJSON' : true
+                        }).then(
+                        function(res){
+                            console.log(res);
+                            alert(res.body.res.data.message + '(' + res.body.res.data.result +')');
+                            success_cb(res);
+                        },
+                        function(res){
+                            error_cb(res);
+                        });
+                }
+
+            },
+            get_meeting_list : function(success_cb,error_cb){
+                var that = this;
+                var url = '../../ajax/room/meeting_list.php';
+                that.$http.post(
+                    url,
+                    {
+                        'user_id' : that.user_id,
+                        'show_type' : "online",
+                        'page' : that.meeting_page,
+                        'status_type' : '1,2'
+                    },
+                    {
+                        'emulateJSON' : true
+                    }).then(
+                    function(res){
+                        that.meeting_has_next = res.body.res.has_next_page;
+                        if(res.body.res.has_next_page){
+                            that.meeting_page++;
+                        }
+                        that.meeting_list = that.meeting_list.concat(res.body.res.list);
+                        success_cb(res);
+                    },
+                    function(res){
+                        error_cb(res);
+                    });
+            },
+            get_group_info : function(success_cb,error_cb){
+                var that = this;
+                var success_cb = success_cb || function(){};
+                var error_cb = error_cb || function(){};
+                var url = '../../ajax/room/get_group_info.php';
+                that.$http.post(
+                    url,
+                    {
+                        'user_id' : that.user_id,
+                        'group_id' : that.group_status.group_id
+                    },
+                    {
+                        'emulateJSON' : true
+                    }).then(
+                    function(res){
+                        that.group_info = res.body.res.data;
+                        console.log(res);
+                        success_cb(res);
+                    },
+                    function(res){
+                        error_cb(res);
+                    });
+            },
+            get_group_members : function(success_cb,error_cb){
+                var that = this;
+                var success_cb = success_cb || function(){};
+                var error_cb = error_cb || function(){};
+                var url = '../../ajax/room/meeting_group_members.php';
+                that.$http.post(
+                    url,
+                    {
+                        'user_id' : that.user_id,
+                        'group_id' : that.group_status.group_id,
+                        'page' : that.group_member_page
+                    },
+                    {
+                        'emulateJSON' : true
+                    }).then(
+                    function(res){
+                        that.group_member_has_next = res.body.res.has_next_page;
+                        if(res.body.res.has_next_page){
+                            that.group_member_page++;
+                        }
+                        that.group_member_list = that.group_member_list.concat(res.body.res.list)
+                        console.log(res);
+                        success_cb(res);
+                    },
+                    function(res){
+                        error_cb(res);
+                    });
+            },
+            load_more_menber : function(){
+                var that = this;
+                that.get_group_members();
+            },
+            list_more : function(){
+                var that = this;
+                that.get_meeting_list(function(res){
+                    console.log(res);
+                },function(res){})
+            },
+            get_service_list : function(auth,success_cb,error_cb,fetch_index){
+                var that = this;
+                console.log(auth);
+                that.api_request(auth,'/chatlog/getChatlist',{user_id:auth.identify + '',app_type:that.client_type,offset:0,max_count:99},
+                    function(res){
+                        console.log('拉取最近聊天用户',res);
+                        success_cb(res,auth.identify,fetch_index);
+                    },
+                    function(res){
+                        error_cb(res);
+                    });
+            },
+            get_audio : function(url,key,success_cb,error_cb){
+                //拉取历史消息
+                var that = this;
+                console.log(url,key)
+                that.api_request(that.auth,'/poco/audio/converter/toMp3',
+                    {
+                        "src_url" : url,
+                        "dst_key" : key
+                    },
+                    function(res){
+                        console.log(res);
+                        success_cb(res);
+                    },function(res){
+                        error_cb(res);
+                    },that.host_wifi.audio);
+            },
+            serviceId_click : function(serviceId,e,index){
+                var that = this;
+                that.agent_status.agent_id = that.agent_temp_id;
+                that.agent_status.service_id = serviceId;
+                that.agent_status.agent_auth = that.agent_temp_auth;
+                that.window_message_list = [];
+                that.options_service_list = [];
+                that.history_more = false;
+                that.fetch_history(3,
+                    function(res,list,has_next){
+                        that.window_message_list = JSON.parse(JSON.stringify(list));
+                        if(list.length){
+                            console.log(that.auth);
+                            console.log(that.client_type+ '/' +that.auth.identify, list[list.length-1].peer_seq)
+                            that.delete_message({}, that.client_type+ '/' +that.auth.identify, list[list.length-1].peer_seq)
+                        }
+                        else{
+
+                        }
+
+                        //that.delete_message({}, that.client_type+ '/' +that.auth.identify, the_last.peer_seq);
+                        //msg_data.to + '/' + msg_data.peer, msg_data.peer_seq
+                        that.clean_unread(that.agent_status.agent_id,that.agent_status.service_id);
+                        if(has_next){
+                            that.history_more = true;
+                        }
+                    },
+                    function(res){
+
+                    });
+                var request_id = that.client_type == 'client'?that.agent_status.service_id:that.agent_status.agent_id;
+                that.fetch_goods_list(request_id,
+                    function(g_res){
+                        console.log('拉取服务列表',request_id)
+                        console.log(g_res)
+                        that.options_service_list = g_res.data.result_data.good_list
+                    },
+                    function(res){
+                        console.log(res)
+                    })
+
+            },
+            fetch_treasure_list : function(id,success_cb,error_cb){
+                var that = this;
+                that.$http.post(
+                    '//share.yueus.com/im/dest/ajax/room/get_treasure_list.php',
+                    {
+                        'user_id' : that.user_id,
+                        'album_user_id' : id
+                    },
+                    {
+                        'emulateJSON' : true
+                    }).then(
+                    function(res){
+                        success_cb(res);
+                    },
+                    function(res){
+                        error_cb(res);
+                    });
+            },
+            fetch_creations_info : function(album_id,success_cb,error_cb){
+                var that = this;
+                var success_cb = success_cb || function(){};
+                var error_cb = error_cb || function(){};
+                var url = '../../ajax/room/get_creations_info.php';
+                that.$http.post(
+                    url,
+                    {
+                        'user_id' : that.group_status.user.user_id,
+                        'album_id' : album_id
+                    },
+                    {
+                        'emulateJSON' : true
+                    }).then(
+                    function(res){
+//                        that.meeting_has_next = res.body.res.has_next_page;
+//                        if(res.body.res.has_next_page){
+//                            that.meeting_page++;
+//                        }
+                        that.album_creations_head = res.body.res.data.albums;
+                        that.album_creations_list = res.body.res.data.list;
+                        console.log(res);
+                        success_cb(res);
+                    },
+                    function(res){
+                        error_cb(res);
+                    });
+            },
+            fetch_history : function(num,success_cb,error_cb,start_time,off_set){
+                //拉取历史消息
+                var that = this;
+                that.api_request(that.auth,'/chatlog/getChatlog',
+                    {
+                        "select_type" : "group_history",
+                        "offset" : off_set || 0,
+                        "max_count" : parseInt(num)+1,
+                        "is_forward" : 1,
+                        "end_time" : start_time || '',
+                        "items" : {
+                            "user_id" : that.user_id,
+                            "app_type" : that.client_type,
+                            "group_id" : that.group_status.group_id
+                        }
+                    },
+                    function(res){
+                        console.log(res);
+                        var has_next = false;
+                        var list = res.data.data.list;
+                        if(list.length == parseInt(num)+1){
+                            has_next = true;
+                            list.shift();
+                            that.history_post = list[0].time
+                        }
+                        else {
+
+                        }
+                        success_cb(res,list,has_next);
+                    },function(res){
+                        error_cb(res);
+                    });
+            },
+            get_history_more : function(){
+                var that = this;
+                var temp = that.window_message_list;
+                that.history_more = false;
+                that.fetch_history(25,
+                    function(res,list,has_next){
+                        that.window_message_list = [];
+                        setTimeout(function(){
+                            that.window_message_list = JSON.parse(JSON.stringify(list.concat(temp)));
+                        },0)
+                        if(has_next){
+                            that.history_more = true;
+                        }
+                    },
+                    function(res){
+
+                    },that.history_post,1)
+            },
+            base_send_parame : function(){
+                var that = this;
+                return {
+                    from : that.client_type,
+                    to : 'group',//that.client_type == 'client'?'client':'client',
+                    sender : that.user_id,
+                    peer : that.group_status.group_id
+                }
+            },
+            send : function(type,extra,options){
+                var that = this;
+                if(!that.group_status.group_id){
+                    alert('请选择群组');
+                    return
+                }
+                var base = that.base_send_parame();
+                var message = {};
+                var success_cb = function(){};
+                var error_cb = function(){};
+                switch (type){
+                    case 'text':
+                        if(!that.text_area)return;
+                        message = {
+                            "type": "text",
+                            "items": {
+                                "txt_content": that.text_area
+                            }
+                        };
+                        success_cb = function(res){
+                            console.log(res);
+                            console.log('发送成功');
+                            that.text_area = '';
+                            that.text_area_cursor = 0;
+                        };
+                        error_cb = function(res){
+                            console.log(res);
+                            console.log('发送失败')
+                        };break;
+                    case 'rich_text' :
+                        break;
+                    case 'image' :
+                        message = {
+                            "type": "image",
+                            "items": {
+                                "img_thumb": extra.url,
+                                "img_url" : extra.url,
+                                "img_original_url" : extra.url
+                            }
+                        };
+                        success_cb = function(res){
+                            console.log(res);
+                            console.log('发送成功');
+
+                        };
+                        error_cb = function(res){
+                            console.log(res);
+                            console.log('发送失败')
+                        };break;
+                    case 'sound' : break;
+                    case 'video' : break;
+                    case 'file' : break;
+                    case 'tips' : break;
+                    case 'location' : break;
+                    case 'sysmsg' : break;
+                    case 'receipt' : break;
+                    case 'custom' :
+                        message = {
+                            "type": "custom",
+                            "items": {
+                                type : options,//'merchandise',
+                                card_style :"3",
+                                card_title : null,
+                                card_text1 : extra.titles,
+                                card_text2 : "￥" + extra.prices,
+                                file_small_url : extra.images,
+                                link_url : extra.link_url,
+                                wifi_url : extra.wifi_url
+                            }
+                        };
+                        success_cb = function(res){
+                            console.log(res);
+                            console.log('发送成功');
+                        };
+                        error_cb = function(res){
+                            console.log(res);
+                            console.log('发送失败')
+                        };break;
+                    case 'withdraw' : break;
+                    case 'words' :
+                        if(!extra.text)return;
+                        message = {
+                            "type": "text",
+                            "items": {
+                                "txt_content": extra.text
+                            }
+                        };
+                        success_cb = function(res){
+                            console.log(res);
+                            console.log('发送成功');
+                        };
+                        error_cb = function(res){
+                            console.log(res);
+                            console.log('发送失败')
+                        };break;
+                }
+
+                if(JSON.stringify(message) != '{}'){
+                    base.type = message.type;
+                    base.items = message.items;
+                    console.log("发送");
+                    that.send_request(base,success_cb,error_cb);
+                }
+                else{
+                    console.log("error send type")
+                }
+
+            },
+            emoji : function(){
+                console.log("/")
+            },
+            options_service : function(index){
+                var that = this;
+                that.options[index].cur = that.options[index].cur?0:1;
+            },
+            resource_send : function(item,success_cb,error_cb){
+                var that = this;
+                var success_cb = success_cb || function(){};
+                var error_cb = error_cb || function(){};
+                console.log(item);
+                if (confirm("确认发出该私货?"+ '<' + item.title + '>'))
+                {
+                    that.$http.post(
+                        '//share.yueus.com/im/dest/ajax/room/resource_send.php',
+                        {
+                            'user_id' : that.user_id,//that.group_status.user.user_id,
+                            'receive_id' : that.group_status.group_id,
+                            'receive_type' : 'group',
+                            'resource_id' : item.resource_id,
+                            //'resource_type' : item.resource_type,
+                            'price' : item.price,
+                            //'resource_url' : item.resource_url,
+                            //'resource_thumb' : item.image,
+                            //'image' : item.image,
+                            //'resource_key' : item.resource_key,
+                            'preview_start' : '0',
+                            'preview_end' : '0',
+                            //'resource_level' : item.resource_level,
+                            //'resource_duration' : item.resource_duration
+                        },
+                        {
+                            'emulateJSON' : true
+                        }).then(
+                        function(res){
+                            that.options[2].cur = 0;
+                            console.log(res);
+                            success_cb(res);
+                        },
+                        function(res){
+                            error_cb(res);
+                        });
+                }
+                else
+                {
+
+                }
+            },
+            input_pic : function(e){
+                var that = this;
+
+                var file = e.target.files[0];
+
+                that.get_ali_token(that.user_id,
+                    function(res){
+                        console.log(res)
+                        var pack = res.data.result_data.ali_token;
+                        if(pack.code == 0 ){
+                            that.OSS_client = new OSS({
+                                region: 'oss-cn-shenzhen',
+                                accessKeyId: pack.data.access_key_id,
+                                accessKeySecret: pack.data.access_key_secret,
+                                stsToken: pack.data.security_token,
+                                bucket: pack.data.bucket_name
+                            });
+
+                            var d = new Date();
+
+                            var d_str = d.getFullYear() + d.getMonth() + d.getMinutes() + d.getSeconds();
+
+                            var storeAs = 'im2.0_' + that.client_type + '_' + that.user_id + '_'+that.agent_status.agent_id + '_' + that.agent_status.service_id + '_' + d_str;
+
+                            that.OSS_client.multipartUpload(storeAs, file,{}).then(function (res) {
+                                console.log('pic_succsss')
+                                console.log(res);
+                                var url = res.url || 'http://yueus.oss-cn-shenzhen.aliyuncs.com/'+ storeAs;
+                                var a =  new TextDecoder("utf-8").decode(res.res.data);
+                                console.log(a);
+                                that.send('image',{url:url});
+                            }).catch(function (err) {
+                                console.log('pic_error')
+                                console.log(err);
+                            });
+                        }
+                        else{
+                            console.log('阿里云token获取错误')
+                        }
+
+                    },
+                    function(res){
+
+                    });
+
+//                reader.onload = function(e)
+//                {
+//                    that.send('image',e);
+//
+//                    msg_sender('picture',document.getElementById('uploadBtn'),e.target.result)
+//                }
+                //reader.readAsDataURL(file);
+
+                console.log(e)
+            },
+            get_ali_token : function(id,success_cb,error_cb){
+                //根据id获取授权信息
+                var that = this;
+                that.$http.post(
+                    '//share.yueus.com/im/dest/ajax/room/get_ali_token.php',
+                    {
+                        'yue_login_id' : id
+                    },
+                    {
+                        'emulateJSON' : true
+                    }).then(
+                    function(res){
+                        success_cb(res);
+                    },
+                    function(res){
+                        error_cb(res);
+                    });
+            },
+            options_words : function(index){
+                var that = this;
+                that.options_words_cur_list = that.options_words_list[index].list
+            },
+            options_words_send : function(str,index){
+                var that = this;
+                console.log(str,index);
+                that.send('words',{text:str})
+            },
+            go_to_edit_word : function(){
+                window.open('http://share.yueus.com/im/client/edit_words/edit_words.php');
+            },
+            textarea_change : function(e){
+                var that = this;
+                that.text_area_cursor = e.target.selectionStart;
+                //console.log(e.target.selectionStart,e.target.selectionEnd)
+
+                //var a = window.getSelection();
+                //console.log(a);
+                //console.log(a.getRangeAt(0))
+            },
+            choose_face : function(e){
+                var that = this;
+                var sub_str = that.text_area.substring(0,that.text_area_cursor)
+                var bot_str = that.text_area.substring(that.text_area_cursor,that.text_area.length)
+                console.log(sub_str)
+                console.log(bot_str)
+                that.text_area = sub_str + e + bot_str
+                that.text_area_cursor = that.text_area_cursor + e.length
+            },
+            change_login_type : function(index){
+                var that = this;
+                that.login_type_index = index;
+                that.login_type_index_2 = 0;
+                console.log(index);
+            },
+            ok_login_type : function(index,str,str2){
+                var that = this;
+                console.log(str);
+                console.log(str2);
+                that.login_type_index_2 = index;
+            },
+            go_to_login : function(){
+                var that = this;
+                var agent_type = that.login_type[that.login_type_index].str;
+                var b = that.login_type[that.login_type_index].role[that.login_type_index_2].ty;
+                var id = that.login_id;
+                var pw = that.login_pw;
+                console.log(agent_type,b,id,pw)
+
+                that.$http.post(
+                    '//share.yueus.com/im/dest/ajax/account/agent_login.php',
+                    {
+                        'login_id' : id,
+                        'pw':pw,
+                        'agent_type': agent_type
+                    },
+                    {
+                        'emulateJSON' : true
+                    }).then(
+                    function(res){
+                        if(res.data.res.result == 1){
+                            alert(res.data.res.message);
+                            window.localStorage.setItem('__Yueus__IM__index__id',id);
+                            window.localStorage.setItem('__Yueus__IM__index__pw',pw);
+                            that.client_type = b;
+                            that.user_id = id;
+                            that.agent_type = agent_type; //water agent
+                            that.mqtt_auth(); //取权限
+                        }
+                        else{
+                            alert(res.data.res.message);
+                        }
+                        console.log(res);
+                    },
+                    function(res){
+                        console.log(res);
+                    });
+            },
+            switch_pop : function(index){
+                var that = this;
+                that.side_bar_index = index
+            }
+        }
+
+    })
+</script>
+</html>

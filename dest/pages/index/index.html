@@ -1,0 +1,1187 @@
+<html>
+<head>
+    <title>聊天测试</title>
+    <meta charset="GB2312">
+    <link type="text/css" href="../../util/mobileBase.css" rel="stylesheet"/>
+    <link type="text/css" href="../../util/reset.css" rel="stylesheet"/>
+    <link type="text/css" href="./index.css?2" rel="stylesheet"/>
+    <script src="../../lib/mod.js"></script>
+    <script src="../../lib/vue.js"></script>
+    <script src="../../lib/vue-resource.min.js"></script>
+    <script src="../../lib/hashes.min.js"></script>
+    <script src="../../lib/inflate.min.js"></script>
+    <script src="../../lib/mqttws31.js"></script>
+    <script src="../../lib/IMSDK.js"></script>
+    <script src="../../modules/message/message.js?5"></script>
+    <script src="../../lib/promise-6.1.0.js"></script>
+    <script src="http://gosspublic.alicdn.com/aliyun-oss-sdk.min.js"></script>
+</head>
+<body>
+<div class="pagemain" id="pagemain" v-cloak>
+    <div class="ds-box container">
+        <div class="ds-box list">
+            <div class="ds-box orient-v agent_list flex-1">
+                <div class="ds-box empty"></div>
+                <div class="ds-box align-center agent_item" v-for="(item, index) in agent_list" @click.stop="chatId_click(item.seller_user_id,$event,index,agent_list[index].auth.data)">
+                <div class="red" v-if="item.unread"></div>
+                <div class="ds-box"><img :src="item.icon" style="width: 40px;height:40px;margin-right: 5px;"/></div>
+                <div class="ds-box orient-v">
+                    <div>{{ item.seller_user_id }}</div>
+                    <div>{{ item.name }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="ds-box orient-v service_list flex-1">
+            <div class="ds-box pack-center align-center orient-v service_add">
+                <div class="add" @click.stop="service_add">增加联系人</div>
+            <div class="ds-box inps"><input class="ds-box inner" v-model="add_input"/></div>
+        </div>
+        <div class="ds-box align-center service_item " v-for="(item, index) in service_list" @click.stop="serviceId_click(item.id,$event,index)">
+        <div v-if="item.unread" class="red">{{item.unread}}</div>
+        <div class="ds-box"><img :src="item.icon" style="width: 40px;height:40px;margin-right: 5px;"/></div>
+        <div class="ds-box orient-v">
+            <div class="fonts">{{ item.id }}</div>
+            <div>{{ item.name }}</div>
+        </div>
+
+    </div>
+</div>
+</div>
+<div class="ds-box orient-v flex-1 window">
+    <div class="ds-box align-center pack-center title">{{agent_status.agent_id}}->{{agent_status.service_id}}</div>
+    <div class="ds-box flex-1 orient-v body">
+        <div class="ds-box pack-center history_more" :class="{ 'fn-hide':!history_more }" @click.stop="get_history_more">查看更多消息</div>
+    <div class="message" v-for="(item, index) in window_message_list">
+        <window-message :message="item" :client="client_type" :mark="order_success_mark"></window-message>
+    </div>
+</div>
+<div class="ds-box options" style="position: relative">
+    <div class="ds-box pack-center align-center options_inner" v-for="(item, index) in options" @click.stop="options_service(index)" style="position:relative">
+    <div v-if="item.type == 'file'">
+        <input type="file" @change="input_pic($event)" class="pic"/>
+        <div>图片</div>
+    </div>
+    <div v-else>{{ item.name }}</div>
+</div>
+<div class="ds-box orient-v options_service" :class="{ 'fn-hide':!options[0].cur }" >
+    <div class="ds-box options_items" v-for="(item, index) in options_service_list">
+        <div class="ds-box info-main flex-1">
+            <div class="ds-box img_con align-center">
+                <img :src="item.images" style="width: 40px;height: 40px;border-radius: 2px;"/>
+            </div>
+            <div class="ds-box orient-v info-con flex-1 pack-center">
+                <div class="service_title">{{item.titles}}</div>
+                <div class="ds-box p-g-con">
+                    <div class="prices">￥{{item.prices}}</div>
+                    <div class="goods_id">商品ID:{{item.goods_id}}</div>
+                </div>
+            </div>
+        </div>
+        <div class="ds-box service_btn orient-v pack-center">
+            <div class="ds-box align-center ways flex-1 pack-center ways" @click.stop="service_send(item)">发送</div>
+        <div class="ds-box align-center ways flex-1 pack-center ways" @click.stop="service_goto(item)">查看</div>
+</div>
+</div>
+</div>
+<div class="ds-box orient-v options_words" :class="{ 'fn-hide':!options[2].cur }">
+    <div class="head">
+        <div class="options_items" style="background: #2e3238;color: #fff" @click.stop="go_to_edit_word">编辑</div>
+    <div class="options_items" v-for="(item, index) in options_words_list" @click.stop="options_words(index)">
+    {{ item.tag_name }}
+</div>
+</div>
+<div class="ds-box words_body flex-1 orient-v">
+    <div class="ds-box options_cur_item align-center" v-for="(item, index) in options_words_cur_list">
+        <div class="ds-box flex-1 left">{{ item.text }}</div>
+        <div class="ds-box align-center pack-center words_send" @click.stop="options_words_send(item.text,index)">发送</div>
+</div>
+</div>
+</div>
+<div class="ds-box orient-v options_face" :class="{ 'fn-hide':!options[3].cur }">
+    <div class="face_item" v-for="(item, key, index) in emoji_list" @click.stop="choose_face(item)"><img :src="'../../image/emoji/' + key + '.png'" style="width: 30px;height: 30px;"/></div>
+</div>
+<div class="ds-box pack-center align-center end_session" @click.stop="end_session">结束咨询</div>
+</div>
+<div class="ds-box enter">
+    <textarea class="text" v-model="text_area" @keydown.enter="send('text')" @keydown.191="emoji" @keyup="textarea_change($event)"></textarea>
+</div>
+<div class="ds-box pack-end align-center send">
+    <div class="ds-box align-center pack-center btn" @click.stop="send('text')">发送</div>
+</div>
+</div>
+<div class="ds-box fade_content pack-center align-center" :class="{ 'fn-hide' : !fade_content }" :style="{ width: window.width+ 'px', height: window.height + 'px' }">
+    <div class="ds-box orient-v login">
+        <div class="ds-box pack-center login_head">代理</div>
+        <div class="ds-box pack-justify align-center login_body">
+            <div v-for="(item,index) in login_type" :class="login_type_index==index?'cur':''" class="ds-box pack-center align-center login_type" @click.stop="change_login_type(index)">{{ item.name }}</div>
+    </div>
+    <div class="ds-box pack-justify login_bot">
+        <div v-for="(item,index) in login_type[login_type_index].role" :class="login_type_index_2==index?'cur':''" class="ds-box pack-center align-center login_type_2 flex-1" @click.stop="ok_login_type(index,login_type[login_type_index].str,item.ty)">{{ item.text }}</div>
+</div>
+<div class="ds-box pack-justify align-center login_form">
+    <div class="ds-box orient-v pack-justify">
+        <div class="ds-box form_inner"><input v-model="login_id" type="number" placeholder="请输入代理号"/></div>
+        <div class="ds-box form_inner"><input v-model="login_pw" type="password" placeholder="请输入密码"></div>
+    </div>
+    <div class="ds-box pack-center align-center btn" @click.stop="go_to_login">登录</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body>
+<script>
+
+//	var client_type = 'client';//seller
+//	var user_id = '100029';
+//	var client_plat = 'web';
+var MqttClient  = require('mqtt_client');
+var urllib = OSS.urllib;
+var OSS = OSS.Wrapper;
+var STS = OSS.STS;
+var app = new Vue({
+    el: '#pagemain',
+    computed: {
+        mqtt : function(){
+            return{
+                mqtt_id : this.client_type +'/'+ this.user_id + '/' + this.client_plat + '/' + new Date().getTime(),
+                username : this.client_type + '/' + this.user_id,
+                password : JSON.stringify(this.auth)
+            }
+        }
+    },
+    data: {
+        login_type : [
+            { name:'干点啥',str:'water',role:[{text:'代理商家',ty:'client'}]}
+        ],
+        login_type_index : 0,
+        login_type_index_2 : 0,
+        login_id : '',
+        login_pw : '',
+        agent_type : '',//agent water 商家代理 或 水军
+        //授权信息储存
+        client_type : '',
+        user_id : '',
+        client_plat : 'web',
+        port : 8983,
+        auth : {
+            access_key : '',
+            access_token : '',
+            expire_in : '',
+            identify : ''
+        },
+        agent_list : [],
+        service_list : [],
+        host : {
+            connect : '//im-on.yueus.com',
+            send : '//im-send.yueus.com',
+            api : '//im-api.yueus.com'
+        },
+        host_wifi : {
+            connect : '//im-on-wifi.yueus.com',
+            send : '//im-send-wifi.yueus.com',
+            api : '//im-api-wifi.yueus.com'
+        },
+        //根据网络状况调整状态
+        host_current : {},
+        add_input : '',
+        picture : '',
+        text_area : '',
+        text_area_cursor : 0,
+        agent_temp_id : '',
+        agent_status : {
+            agent_id : '',
+            service_id : '',
+            agent_auth : ''
+        },
+        options : [{'name':'服务',cur:0,type: 'service'},{'name':'图片',cur:0,type: 'file'},{'name':'日常用语',cur:0,type: 'words'},{'name':'表情',cur:0,type: 'faces'}],
+        window_message_list : [],
+        history_more : false,
+        history_post : '',
+        service_list_base : [],
+        options_service_list : [],
+        options_words_list : [],
+        options_words_cur_list : [],
+        OSS_client : {},
+        emoji_list:
+        {
+            'kb-emoji-U+E057':'/憨笑',
+            'kb-emoji-U+E106':'/色',
+            'kb-emoji-U+E40E':'/奋斗',
+            'kb-emoji-U+E40D':'/发呆',
+            'kb-emoji-U+E404':'/咧牙',
+            'kb-emoji-U+E418':'/示爱',
+            'kb-emoji-U+E405':'/逗你',
+            'kb-emoji-U+E059':'/左哼哼',
+            'kb-emoji-U+E058':'/难过',
+            'kb-emoji-U+E401':'/冷汗',
+            'kb-emoji-U+E411':'/流泪',
+            'kb-emoji-U+E409':'/扮鬼脸',
+            'kb-emoji-U+E416':'/发怒',
+            'kb-emoji-U+E406':'/晕',
+            'kb-emoji-U+E40A':'/发愁',
+            'kb-emoji-U+E417':'/亲亲',
+            'kb-emoji-U+E108':'/流汗',
+            'kb-emoji-U+E412':'/大哭',
+            'kb-emoji-U+E056':'/可爱',
+            'kb-emoji-U+E413':'/好?',
+            'kb-emoji-U+E105':'/调皮',
+            'kb-emoji-U+E40B':'/衰',
+            'kb-emoji-U+E40F':'/好糗',
+            'kb-emoji-U+E410':'/抓狂',
+            'kb-emoji-U+E402':'/坏笑',
+            'kb-emoji-U+E107':'/惊讶',
+            'kb-emoji-U+E408':'/睡',
+            'kb-emoji-U+E407':'/折磨',
+            'kb-emoji-U+E00E':'/强',
+            'kb-emoji-U+E421':'/弱',
+            'kb-emoji-U+E00D':'/出拳',
+            'kb-emoji-U+E010':'/拳头',
+            'kb-emoji-U+E011':'/胜利',
+            'kb-emoji-U+E41F':'/鼓掌',
+            'kb-emoji-U+E230':'/向左',
+            'kb-emoji-U+E22F':'/向右',
+            'kb-emoji-U+E420':'/OK',
+            'kb-emoji-U+E022':'/爱心',
+            'kb-emoji-U+E023':'/心碎',
+            'kb-emoji-U+E04A':'/太阳',
+            'kb-emoji-U+E04C':'/月亮',
+            'kb-emoji-U+E13D':'/闪电',
+            'kb-emoji-U+E41C':'/嘴唇',
+            'kb-emoji-U+E032':'/玫瑰',
+            'kb-emoji-U+E045':'/咖啡',
+            'kb-emoji-U+E34B':'/蛋糕',
+            'kb-emoji-U+E047':'/啤酒',
+            'kb-emoji-U+E112':'/礼物',
+            'kb-emoji-U+E018':'/足球',
+            'kb-emoji-U+E311':'/炸弹'
+        },
+        order_success_mark : '支付成功，请在',
+        window : {
+            width: window.document.body.offsetWidth,
+            height:window.document.body.offsetHeight
+        },
+        fade_content : 1
+    },
+    mounted : function(){
+        var that = this;
+        //获取授权信息
+        //this.mqtt_auth();
+        var is_wifi = true;
+
+        if(window.localStorage.getItem('__Yueus__IM__index__id'))
+        {
+            that.login_id = window.localStorage.getItem('__Yueus__IM__index__id');
+        }
+        if(window.localStorage.getItem('__Yueus__IM__index__pw'))
+        {
+            that.login_pw = window.localStorage.getItem('__Yueus__IM__index__pw');
+        }
+
+        if(is_wifi){
+            that.host_current = that.host_wifi;
+        }
+        else{
+            that.host_current = that.host
+        }
+        window.onresize = function(e){
+            that.window.width = e.target.innerWidth;
+            that.window.height = e.target.innerHeight;
+        }
+    },
+    methods : {
+        'mqtt_auth' : function(){
+            //代理号mqtt授权
+            var that = this;
+            that.get_auth([that.user_id],
+                    function(res){
+                        console.log('1.获取代理号授权信息');
+                        console.log(res);
+                        var packages = res.body.res[0];
+                        if(packages.auth != -1) {
+                            that.auth.access_key = packages.auth.access_key;
+                            that.auth.access_token = packages.auth.access_token;
+                            that.auth.expire_in = packages.auth.expire_in;
+                            that.auth.identify = packages.auth.identify;
+                            that.auth.password = JSON.stringify(
+                                    {
+                                        identify: packages.auth.identify + '',
+                                        expire: packages.auth.expire_in,
+                                        access_key: packages.auth.access_key,
+                                        access_token: packages.auth.access_token
+                                    });
+                            that.options_words_list = packages.words_tags;
+                            //获取代理列表
+                            that.get_agent_list(
+                                    function(data){
+                                        //拉取代理列表成功
+                                        console.log(data);
+                                        var a_list = data.data.res;
+                                        if(a_list.length == 0){
+                                            alert('该账号无任何代理')
+                                        }
+                                        for(var a = 0 in a_list){
+                                            //拉取服务列表
+
+                                            that.get_service_list(a_list[a].auth.data,
+                                                    function(s_res,identify,fetch_index){
+                                                        //拉取服务列表成功
+                                                        if(s_res.body.code == 0){
+                                                            var recently = s_res.body.data.list;
+                                                            var filter_type = that.client_type == 'client'?'client':'client';
+                                                            var list = [];
+                                                            for(var i = 0 in recently){
+                                                                if(recently[i].peer_id.indexOf(filter_type) != -1){
+                                                                    list.push(recently[i].peer_id.slice(7))
+                                                                }
+                                                            }
+                                                            that.get_auth(list,
+                                                                    function(r_res){
+                                                                        //服务列表拉取授权
+                                                                        //列表拉取完毕后才开始mqtt链接 避免列表完成之前一个bug
+                                                                        if(parseInt(fetch_index)+1 == a_list.length){
+                                                                            that.mqtt_login();
+                                                                        }
+                                                                        console.log('service_list添加授权信息icon等');
+                                                                        console.log(r_res);
+                                                                        //that.service_list = r_res.body.res;
+                                                                        that.service_list_base.push({agent:identify,list:r_res.body.res});
+                                                                        that.fade_content = 0;
+
+                                                                    },
+                                                                    function(r_res){
+                                                                        console.log('service_list auth授权失败')
+                                                                    },that.client_type == 'client'?'client':'client');
+                                                        }
+                                                        else{
+                                                            console.log('用户列表拉取错误',s_res)
+                                                        }
+                                                    },
+                                                    function(s_res){
+
+                                                    },a)
+                                        }
+                                        that.agent_list = a_list;
+                                    },
+                                    function(data){
+                                        console.log(data.data.res);
+                                    });
+                        }
+                        else{
+                            alert('拉取授权信息失败，请重试')
+                        }
+                    },
+                    function(res){
+
+                    },that.client_type,'self');
+        },
+        get_auth : function(id_arr,success_cb,error_cb,type,self){
+            //根据id获取授权信息
+            //self='self':用于管理员拉取日常用语
+            var that = this;
+            that.$http.post(
+                    '//share.yueus.com/im/dest/ajax/account/get_token.php',
+                    {
+                        'yue_login_id' : id_arr,
+                        'self' : self == 'self'?'self':'',
+                        'type' : type,
+                        'agent_typ' : that.agent_type
+                    },
+                    {
+                        'emulateJSON' : true
+                    }).then(
+                    function(res){
+                        success_cb(res);
+                    },
+                    function(res){
+                        error_cb(res);
+                    });
+        },
+        calculate : function(func_name,params,time){
+            var that = this;
+            var SHA1 = new Hashes.SHA1;
+            return SHA1.hex('imcore' + func_name + JSON.stringify(params) + time + 'bodyauth');
+        },
+        mqtt_login : function(){
+            var that = this;
+            that.IMSDK = new MqttClient(this);
+            console.log(that.host_current.connect,that.port,that.client_type,that.user_id,that.auth.password)
+            that.IMSDK.login({
+                hostname : that.host_current.connect,
+                port : that.port,
+                user_type : that.client_type,
+                user_id : that.user_id,
+                password : that.auth.password
+            })
+        },
+        login_success : function(){
+            //连接成功
+            console.log('2.mqtt链接成功');
+            console.log("连接成功")
+        },
+        connect_lost : function(){
+            console.log('连接断开')
+        },
+        message_receive : function(res){
+            //存进缓存，避免一个请求服务列表过程中接收到新消息的bug
+            var that = this;
+            console.log('收到消息');
+            console.log(res);
+            that.resolve_new_receive(res);
+            that.fetch_session('start',{agent_id:res.peer, service_id:res.sender});
+        },
+        resolve_new_receive : function(res){
+            var that = this;
+            var pkg = res;
+            var is_in_service_list = false;
+            console.log(res)
+            /**
+             * agent_list添加红点
+             * **/
+            var a_list = JSON.parse(JSON.stringify(that.agent_list));
+            for(var i = 0 in a_list){
+                //循环代理列表
+                if(pkg.peer == a_list[i].seller_user_id){
+                    //pkg的接受者id等于代理列表的代理id / 表示未读
+                    a_list[i].unread = true;
+                    for(var j = 0 in that.service_list_base){
+                        //本地用户库数据
+                        if(that.service_list_base[j].agent == a_list[i].seller_user_id){
+                            //代理id等于 代理id 即等于pkg的接受者id
+                            for(var k = 0 in that.service_list_base[j].list){
+                                //循环该代理下的服务者列表
+
+                                if(that.service_list_base[j].list[k].id == pkg.sender){
+                                    console.log('存在')
+                                    is_in_service_list = true;
+                                    that.service_list_base[j].list[k].unread = that.add_red_point(that.service_list_base[j].list[k]);
+
+                                    var temp = that.service_list_base[j].list[k];
+                                    that.service_list_base[j].list.splice(k,1);
+                                    that.service_list_base[j].list.splice(0,0,temp);
+
+                                }
+                            }
+
+                            if(!is_in_service_list){
+                                if('10000'){
+                                    that.service_list_base[j].list.splice(0,0,{id:pkg.sender,unread:1})
+                                }
+                                var agent_list_index = j;
+
+                                that.get_auth([pkg.sender],
+                                        function(r_res){
+                                            var packages = r_res.body.res[0];
+                                            if(packages.auth != -1) {
+                                                //新增联系人置顶
+                                                for(var x = 0 in that.service_list_base[agent_list_index].list){
+                                                    if(that.service_list_base[agent_list_index].list[x].id == pkg.sender){
+                                                        that.service_list_base[agent_list_index].list[x].auth = r_res.body.res[0].auth;
+                                                        that.service_list_base[agent_list_index].list[x].icon = r_res.body.res[0].icon;
+                                                    }
+                                                }
+//                                                that.service_list_base[agent_list_index].list.splice(0,0,{id:pkg.sender,unread:1})
+//                                                var add_obj = {};
+//                                                add_obj.id = pkg.sender;
+//                                                add_obj.auth = r_res.body.res[0].auth;
+//                                                add_obj.icon = r_res.body.res[0].icon;
+//                                                add_obj.unread = 1;
+
+                                                //var cur_list = JSON.parse(JSON.stringify(that.service_list));
+
+                                                //that.service_list_base[j].list.splice(0,0,add_obj)// = arr.concat(that.service_list_base[j].list);
+                                            }
+                                            else{
+                                                console.log('拉取失败，请重试')
+                                            }
+                                        },
+                                        function(r_res){
+
+                                        },that.client_type == 'client'?'client':'client');
+                            }
+                        }
+                        //is_in_service_list = false;
+                    }
+
+                    //break;
+                }
+            }
+            that.agent_list = a_list;
+
+            if(pkg.peer == that.agent_status.agent_id && pkg.sender == that.agent_status.service_id){
+                that.window_message_list.push(pkg);
+            }
+        },
+        add_red_point : function(pkg){
+            var that = this;
+            if(!pkg.unread){
+                return 1
+            }
+            else{
+                return pkg.unread + 1
+            }
+        },
+        onSubscribe : function(res){
+            var that = this;
+            console.log('订阅成功，获取未读消息');
+            console.log(res);
+
+            for(var i = 0 in res){
+                that.resolve_new_receive(res[i]);
+            }
+        },
+        delete_message : function(none, chat_id, peer_seq){
+            var that = this;
+            that.IMSDK.deleteMessage(none, chat_id, peer_seq);
+        },
+        api_request : function(auth,func_name,params,success_cb,error_cb){
+            if(!func_name){
+                console.log('api_func_name错误')
+            }
+            var that = this;
+            var time = Math.floor(Date.now() / 1000);
+            var sign = this.calculate(func_name,params,time);
+
+
+            var api_host = that.host_current.api;
+            console.log(auth);
+            var url = api_host + func_name + '?expire=' + auth.expire_in + '&identify=' + auth.identify + '&access_key=' + auth.access_key + '&access_token=' + auth.access_token;
+            this.$http.post(
+                    url,
+                    {
+                        "time" : time,
+                        "sign" : sign,
+                        "params" : params
+                    },
+                    {
+                        'emulateJSON' : false,
+                        headers : {'Content-Type': 'application/json'}
+                    }).then(
+                    function(res){
+                        success_cb(res);
+                    },
+                    function(res){
+                        error_cb(res);
+                    });
+        },
+        send_request : function(message,success_cb,error_cb){
+            var func_name = '/imcore/sender';
+            var that = this;
+            var time = Math.floor(Date.now() / 1000);
+            var params = {
+                "mode": "normal",
+                "retain": 0,
+                "message": message,
+                "notify_addon": {},
+                "environment": {}
+            };
+            var sign = this.calculate(func_name,params,time);
+
+            var api_host = that.host_current.send;
+            var auth = that.agent_status.agent_auth.data;
+
+            console.log(auth)
+            var url = api_host + func_name + '?expire=' + auth.expire_in + '&identify=' + auth.identify + '&access_key=' + auth.access_key + '&access_token=' + auth.access_token;
+            this.$http.post(
+                    url,
+                    {
+                        "time" : time,
+                        "sign" : sign,
+                        "params" : params
+                    },
+                    {
+                        'emulateJSON' : false,
+                        headers : {'Content-Type': 'application/json'}
+                    }).then(
+                    function(res){
+                        success_cb(res);
+                        var obj = {
+                            from : that.client_type,
+                            items : message.items,
+                            msg_id : res.data.msg_id,
+                            peer : that.agent_status.service_id,
+                            peer_seq : res.data.peer_seq,
+                            sender : that.agent_status.agent_id,
+                            time : res.data.time,
+                            to : that.client_type == 'client'?'client':'client',
+                            type : message.type
+                        };
+                        console.log(obj);
+                        that.window_message_list.push(obj);
+                        that.fetch_session('talk',{agent_id:'', service_id:''});
+                    },
+                    function(res){
+                        error_cb(res);
+                    });
+        },
+        get_agent_list : function(success_cb,error_cb){
+            //获取代理列表
+            var that = this;
+            var url = '../../ajax/room/agent_list.php';
+            that.$http.post(
+                    url,
+                    {
+                        'user_id' : that.user_id,
+                        'user_type' : that.client_type,
+                        'agent_type' : that.agent_type
+                    },
+                    {
+                        'emulateJSON' : true
+                    }).then(
+                    function(res){
+                        success_cb(res);
+                    },
+                    function(res){
+                        error_cb(res);
+                    });
+        },
+        get_service_list : function(auth,success_cb,error_cb,fetch_index){
+            var that = this;
+            console.log(auth);
+            that.api_request(auth,'/chatlog/getChatlist',{user_id:auth.identify + '',app_type:that.client_type,offset:0,max_count:99},
+                    function(res){
+                        console.log('拉取最近聊天用户',res);
+                        success_cb(res,auth.identify,fetch_index);
+                    },
+                    function(res){
+                        error_cb(res);
+                    });
+        },
+        chatId_click : function(chatId,e,index,auth){
+            var that = this;
+            //点击代理列表item
+            var user_pack = that.agent_list[index];
+
+            that.agent_temp_id = user_pack.seller_user_id;
+
+            that.agent_temp_auth = user_pack.auth;
+
+            that.set_service_list_by_agent_id(user_pack.seller_user_id);
+
+            //检验代理信息
+//                that.api_request(auth,'/client/getAgent',{user_id:chatId,app_type:that.client_type},
+//                        function(res){
+//                            console.log('100004代理信息');
+//                            console.log(res)
+//                        },function(res){})
+//                /client/removeAgent
+//                that.api_request(auth,'/client/setAgent',{user_id:'100004',app_type:'seller',agent_id:'100029',agent_type:'seller'},
+//                        function(res){
+//                            console.log('100004代理信息');
+//                            console.log(res)
+//                        },function(res){})
+        },
+        clean_unread : function(agent_id,service_id){
+            var that = this;
+            for(var k = 0 in that.service_list_base){
+                var all_read = true;
+                if(that.service_list_base[k].agent == agent_id){
+                    for(var l = 0 in that.service_list_base[k].list){
+                        if(that.service_list_base[k].list[l].id == service_id){
+                            that.service_list_base[k].list[l].unread = 0
+                        }
+                        if(that.service_list_base[k].list[l].unread){
+                            //有未读消息
+                            all_read = false
+                        }
+                    }
+                }
+                if(all_read){
+                    that.agent_list[k].unread = false
+                }
+            }
+        },
+        set_service_list_by_agent_id : function(agent_id){
+            var that = this;
+            //base关联service_list
+            for(var b = 0 in that.service_list_base){
+                if(that.service_list_base[b].agent == agent_id){
+                    that.service_list = that.service_list_base[b].list
+                }
+            }
+        },
+        serviceId_click : function(serviceId,e,index){
+            var that = this;
+            that.agent_status.agent_id = that.agent_temp_id;
+            that.agent_status.service_id = serviceId;
+            that.agent_status.agent_auth = that.agent_temp_auth;
+            that.window_message_list = [];
+            that.history_more = false;
+            that.fetch_history(3,
+                    function(res,list,has_next){
+                        that.window_message_list = JSON.parse(JSON.stringify(list));
+                        if(list.length){
+                            console.log(that.auth);
+                            console.log(that.client_type+ '/' +that.auth.identify, list[list.length-1].peer_seq)
+                            that.delete_message({}, that.client_type+ '/' +that.auth.identify, list[list.length-1].peer_seq)
+                        }
+                        else{
+
+                        }
+
+                        //that.delete_message({}, that.client_type+ '/' +that.auth.identify, the_last.peer_seq);
+                        //msg_data.to + '/' + msg_data.peer, msg_data.peer_seq
+                        that.clean_unread(that.agent_status.agent_id,that.agent_status.service_id);
+                        if(has_next){
+                            that.history_more = true;
+                        }
+                    },
+                    function(res){
+
+                    });
+            var request_id = that.client_type == 'client'?that.agent_status.service_id:that.agent_status.agent_id;
+            that.fetch_goods_list(request_id,
+                    function(g_res){
+                        console.log('拉取服务列表',request_id)
+                        console.log(g_res)
+                        that.options_service_list = g_res.data.result_data.good_list
+                    },
+                    function(res){
+                        console.log(res)
+                    })
+
+        },
+        fetch_goods_list : function(id,success_cb,error_cb){
+            var that = this;
+            that.$http.post(
+                    '//share.yueus.com/im/dest/ajax/room/get_goods_list.php',
+                    {
+                        'user_id' : id,
+                        'type' : that.client_type,
+                        //type : that.client_type == 'client'?'seller':'client'
+                        'agent_type':that.agent_type
+                    },
+                    {
+                        'emulateJSON' : true
+                    }).then(
+                    function(res){
+                        success_cb(res);
+                    },
+                    function(res){
+                        error_cb(res);
+                    });
+        },
+        fetch_history : function(num,success_sb,error_cb,start_time,off_set){
+            //拉取历史消息
+            var that = this;
+            that.api_request(that.agent_status.agent_auth.data,'/chatlog/getChatlog',
+                    {
+                        "select_type" : "history",
+                        "offset" : off_set || 0,
+                        "max_count" : parseInt(num)+1,
+                        "is_forward" : 1,
+                        "end_time" : start_time || '',
+                        "items" : {
+                            "user_id" : that.agent_status.agent_id,
+                            "app_type" : that.client_type,
+                            "peer_id" : that.agent_status.service_id,
+                            "peer_type" : that.client_type == 'client'?'client':'client'
+                        }
+                    },
+                    function(res){
+                        console.log(res);
+                        var has_next = false;
+                        var list = res.data.data.list;
+                        if(list.length == parseInt(num)+1){
+                            has_next = true;
+                            list.shift();
+                            that.history_post = list[0].time
+                        }
+                        else {
+
+                        }
+                        success_sb(res,list,has_next);
+                    },function(res){
+                        error_cb(res);
+                    });
+        },
+        get_history_more : function(){
+            var that = this;
+            var temp = that.window_message_list;
+            that.history_more = false;
+            that.fetch_history(25,
+                    function(res,list,has_next){
+                        that.window_message_list = [];
+                        setTimeout(function(){
+                            that.window_message_list = JSON.parse(JSON.stringify(list.concat(temp)));
+                        },0)
+                        if(has_next){
+                            that.history_more = true;
+                        }
+                    },
+                    function(res){
+
+                    },that.history_post,1)
+        },
+        base_send_parame : function(){
+            var that = this;
+            return {
+                from : that.client_type,
+                to : that.client_type == 'client'?'client':'client',
+                sender : that.agent_status.agent_id,
+                peer : that.agent_status.service_id
+            }
+        },
+        send : function(type,extra,options){
+            var that = this;
+            if(!that.agent_status.agent_id || !that.agent_status.service_id){
+                alert('请选择代理和接收者');
+                return
+            }
+            var base = that.base_send_parame();
+            var message = {};
+            var success_cb = function(){};
+            var error_cb = function(){};
+            switch (type){
+                case 'text':
+                    if(!that.text_area)return;
+                    message = {
+                        "type": "text",
+                        "items": {
+                            "txt_content": that.text_area
+                        }
+                    };
+                    success_cb = function(res){
+                        console.log(res);
+                        console.log('发送成功');
+                        that.text_area = '';
+                        that.text_area_cursor = 0;
+                    };
+                    error_cb = function(res){
+                        console.log(res);
+                        console.log('发送失败')
+                    };break;
+                case 'rich_text' :
+                    break;
+                case 'image' :
+                    message = {
+                        "type": "image",
+                        "items": {
+                            "img_thumb": extra.url,
+                            "img_url" : extra.url,
+                            "img_original_url" : extra.url
+                        }
+                    };
+                    success_cb = function(res){
+                        console.log(res);
+                        console.log('发送成功');
+
+                    };
+                    error_cb = function(res){
+                        console.log(res);
+                        console.log('发送失败')
+                    };break;
+                case 'sound' : break;
+                case 'video' : break;
+                case 'file' : break;
+                case 'tips' : break;
+                case 'location' : break;
+                case 'sysmsg' : break;
+                case 'receipt' : break;
+                case 'custom' :
+                    message = {
+                        "type": "custom",
+                        "items": {
+                            type : options,//'merchandise',
+                            card_style :"3",
+                            card_title : null,
+                            card_text1 : extra.titles,
+                            card_text2 : "￥" + extra.prices,
+                            file_small_url : extra.images,
+                            link_url : extra.link_url,
+                            wifi_url : extra.wifi_url
+                        }
+                    };
+                    success_cb = function(res){
+                        console.log(res);
+                        console.log('发送成功');
+                    };
+                    error_cb = function(res){
+                        console.log(res);
+                        console.log('发送失败')
+                    };break;
+                case 'withdraw' : break;
+                case 'words' :
+                    if(!extra.text)return;
+                    message = {
+                        "type": "text",
+                        "items": {
+                            "txt_content": extra.text
+                        }
+                    };
+                    success_cb = function(res){
+                        console.log(res);
+                        console.log('发送成功');
+                    };
+                    error_cb = function(res){
+                        console.log(res);
+                        console.log('发送失败')
+                    };break;
+            }
+
+            if(JSON.stringify(message) != '{}'){
+                base.type = message.type;
+                base.items = message.items;
+                console.log("发送");
+                that.send_request(base,success_cb,error_cb);
+            }
+            else{
+                console.log("error send type")
+            }
+
+        },
+        emoji : function(){
+            console.log("/")
+        },
+        service_add : function(){
+            var that = this;
+            console.log('4.获取增加联系人授权信息');
+            if(!that.agent_temp_id){
+                alert('未选择代理商');
+                return
+            }
+            if(!that.add_input || !parseInt(that.add_input)){
+                alert('请正确输入id')
+            }
+            else{
+                that.get_auth([that.add_input],
+                        function(res){
+                            var packages = res.body.res[0];
+                            if(packages.auth != -1) {
+                                //新增联系人置顶
+                                var add_obj = {};
+                                add_obj.id = that.add_input;
+                                add_obj.auth = res.body.res[0].auth;
+                                add_obj.icon = res.body.res[0].icon;
+                                add_obj.name = res.body.res[0].name;
+                                for(var u = 0 in that.service_list_base){
+                                    if(that.agent_temp_id == that.service_list_base[u].agent){
+                                        var has = false;
+                                        for(var o = 0 in that.service_list_base[u].list){
+                                            if(that.service_list_base[u].list[o].id == add_obj.id){
+                                                has = true;
+                                                var temp = that.service_list_base[u].list[o];
+                                                that.service_list_base[u].list.splice(o,1);
+                                                that.service_list_base[u].list.splice(0,0,temp);
+                                            }
+                                        }
+                                        if(!has){
+                                            that.service_list_base[u].list.splice(0,0,add_obj)
+                                        }
+
+                                    }
+                                }
+                            }
+                            else{
+                                console.log('拉取失败，请重试')
+                            }
+                        },
+                        function(res){
+
+                        },that.client_type == 'client'?'client':'client');
+            }
+        },
+        options_service : function(index){
+            var that = this;
+            that.options[index].cur = that.options[index].cur?0:1;
+        },
+        service_send : function(goods){
+            var that = this;
+            console.log(goods)
+            that.send('custom',goods,'merchandise');
+        },
+        service_goto : function(goods){
+            console.log(goods)
+            window.open('//goods.yueus.com/?goods_id='+ goods.goods_id);
+        },
+        input_pic : function(e){
+            var that = this;
+
+            var file = e.target.files[0];
+
+            that.get_ali_token(that.user_id,
+                    function(res){
+                        console.log(res)
+                        var pack = res.data.result_data.ali_token;
+                        if(pack.code == 0 ){
+                            that.OSS_client = new OSS({
+                                region: 'oss-cn-shenzhen',
+                                accessKeyId: pack.data.access_key_id,
+                                accessKeySecret: pack.data.access_key_secret,
+                                stsToken: pack.data.security_token,
+                                bucket: pack.data.bucket_name
+                            });
+
+                            var d = new Date();
+
+                            var d_str = d.getFullYear() + d.getMonth() + d.getMinutes() + d.getSeconds();
+
+                            var storeAs = 'im2.0_' + that.client_type + '_' + that.user_id + '_'+that.agent_status.agent_id + '_' + that.agent_status.service_id + '_' + d_str;
+
+                            that.OSS_client.multipartUpload(storeAs, file,{}).then(function (res) {
+                                console.log('pic_succsss')
+                                console.log(res);
+                                var url = res.url || 'http://yueus.oss-cn-shenzhen.aliyuncs.com/'+ storeAs;
+                                var a =  new TextDecoder("utf-8").decode(res.res.data);
+                                console.log(a);
+                                that.send('image',{url:url});
+                            }).catch(function (err) {
+                                console.log('pic_error')
+                                console.log(err);
+                            });
+                        }
+                        else{
+                            console.log('阿里云token获取错误')
+                        }
+
+                    },
+                    function(res){
+
+                    });
+
+//                reader.onload = function(e)
+//                {
+//                    that.send('image',e);
+//
+//                    msg_sender('picture',document.getElementById('uploadBtn'),e.target.result)
+//                }
+            //reader.readAsDataURL(file);
+
+            console.log(e)
+        },
+        get_ali_token : function(id,success_cb,error_cb){
+            //根据id获取授权信息
+            var that = this;
+            that.$http.post(
+                    '//share.yueus.com/im/dest/ajax/room/get_ali_token.php',
+                    {
+                        'yue_login_id' : id
+                    },
+                    {
+                        'emulateJSON' : true
+                    }).then(
+                    function(res){
+                        success_cb(res);
+                    },
+                    function(res){
+                        error_cb(res);
+                    });
+        },
+        options_words : function(index){
+            var that = this;
+            that.options_words_cur_list = that.options_words_list[index].list
+        },
+        options_words_send : function(str,index){
+            var that = this;
+            console.log(str,index);
+            that.send('words',{text:str})
+        },
+        go_to_edit_word : function(){
+            window.open('http://share.yueus.com/im/client/edit_words/edit_words.php');
+        },
+        textarea_change : function(e){
+            var that = this;
+            that.text_area_cursor = e.target.selectionStart;
+            //console.log(e.target.selectionStart,e.target.selectionEnd)
+
+            //var a = window.getSelection();
+            //console.log(a);
+            //console.log(a.getRangeAt(0))
+        },
+        choose_face : function(e){
+            var that = this;
+            var sub_str = that.text_area.substring(0,that.text_area_cursor)
+            var bot_str = that.text_area.substring(that.text_area_cursor,that.text_area.length)
+            console.log(sub_str)
+            console.log(bot_str)
+            that.text_area = sub_str + e + bot_str
+            that.text_area_cursor = that.text_area_cursor + e.length
+        },
+        change_login_type : function(index){
+            var that = this;
+            that.login_type_index = index;
+            that.login_type_index_2 = 0;
+            console.log(index);
+        },
+        ok_login_type : function(index,str,str2){
+            var that = this;
+            console.log(str);
+            console.log(str2);
+            that.login_type_index_2 = index;
+        },
+        go_to_login : function(){
+            var that = this;
+            var agent_type = that.login_type[that.login_type_index].str;
+            var b = that.login_type[that.login_type_index].role[that.login_type_index_2].ty;
+            var id = that.login_id;
+            var pw = that.login_pw;
+            console.log(agent_type,b,id,pw)
+
+            that.$http.post(
+                    '//share.yueus.com/im/dest/ajax/account/agent_login.php',
+                    {
+                        'login_id' : id,
+                        'pw':pw,
+                        'agent_type': agent_type
+                    },
+                    {
+                        'emulateJSON' : true
+                    }).then(
+                    function(res){
+                        if(res.data.res.result == 1){
+                            alert(res.data.res.message);
+                            window.localStorage.setItem('__Yueus__IM__index__id',id);
+                            window.localStorage.setItem('__Yueus__IM__index__pw',pw);
+                            that.client_type = b;
+                            that.user_id = id;
+                            that.agent_type = agent_type;
+                            that.mqtt_auth();
+                        }
+                        else{
+                            alert(res.data.res.message);
+                        }
+                        console.log(res);
+                    },
+                    function(res){
+                        console.log(res);
+                    });
+        },
+        fetch_session : function(operate,options){
+            var that = this;
+            that.$http.post(
+                    '//share.yueus.com/im/dest/ajax/room/session_status.php',
+                    {
+                        'agent_id' : options.agent_id?options.agent_id:that.agent_status.agent_id,
+                        'service_id': options.service_id?options.service_id:that.agent_status.service_id,
+                        'operate' : operate,
+                        'agent_type': that.agent_type,
+                        'client_type' : that.client_type
+                    },
+                    {
+                        'emulateJSON' : true
+                    }).then(
+                    function(res){
+                        console.log(res);
+                        if(res.data.result_data == 1 && operate == 'end'){
+                            alert(res.data.result_data.message);
+                        }
+                    },
+                    function(res){
+                        console.log(res);
+                    });
+        },
+        end_session : function(){
+            var that = this;
+            if(confirm('结束'+that.agent_status.agent_id+'对'+that.agent_status.service_id+'的对话？')){
+                that.fetch_session('end',{agent_id:'', service_id:''});
+            }
+            else{
+
+            }
+
+        }
+    }
+
+})
+</script>
+</html>

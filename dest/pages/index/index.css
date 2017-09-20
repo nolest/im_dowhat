@@ -1,0 +1,295 @@
+.pagemain {
+  background: #fff; }
+  .pagemain .container {
+    position: relative;
+    height: 100%;
+    width: 100%; }
+    .pagemain .container .list {
+      background: #2e3238;
+      color: #fff;
+      width: 30%;
+      border-right: 1px solid #ccc; }
+      .pagemain .container .list .agent_list {
+        border-right: 1px solid #f2f2f2; }
+        .pagemain .container .list .agent_list .empty {
+          height: 45px; }
+        .pagemain .container .list .agent_list .agent_item {
+          padding: 5px 0px 5px 15px;
+          overflow: hidden;
+          height: 45px;
+          cursor: pointer;
+          word-break: break-all; }
+          .pagemain .container .list .agent_list .agent_item:hover {
+            background: #3a3f45; }
+          .pagemain .container .list .agent_list .agent_item .red {
+            background: red;
+            padding: 8px;
+            border-radius: 50%;
+            margin-right: 5px; }
+      .pagemain .container .list .service_list {
+        overflow-y: scroll; }
+        .pagemain .container .list .service_list .service_add {
+          height: 45px;
+          border-bottom: 1px solid #ccc; }
+          .pagemain .container .list .service_list .service_add .add {
+            cursor: pointer; }
+          .pagemain .container .list .service_list .service_add .inps {
+            width: 80px; }
+          .pagemain .container .list .service_list .service_add .inner {
+            width: 80px; }
+        .pagemain .container .list .service_list .service_item {
+          padding: 5px 0px 5px 15px;
+          overflow: hidden;
+          height: 45px;
+          cursor: pointer;
+          word-break: break-all; }
+          .pagemain .container .list .service_list .service_item:hover {
+            background: #3a3f45; }
+          .pagemain .container .list .service_list .service_item .red {
+            font-size: 12px;
+            line-height: 12px;
+            height: 12px;
+            min-width: 12px;
+            text-align: center;
+            background: red;
+            padding: 5px 5px;
+            border-radius: 50%;
+            color: #fff;
+            margin-right: 5px; }
+    .pagemain .container .window {
+      background: #f2f2f2; }
+      .pagemain .container .window .title {
+        height: 45px;
+        border-bottom: 1px solid #ccc; }
+      .pagemain .container .window .body {
+        overflow-y: scroll;
+        border-bottom: 1px solid #ccc;
+        padding-top: 5px; }
+        .pagemain .container .window .body .history_more {
+          margin-bottom: 5px;
+          color: #2786e4;
+          font-size: 14px;
+          cursor: pointer; }
+          .pagemain .container .window .body .history_more:hover {
+            text-decoration: underline; }
+        .pagemain .container .window .body .message .each .head {
+          padding-left: 5px; }
+        .pagemain .container .window .body .message .each .content {
+          margin-top: 8px;
+          margin-bottom: 8px;
+          padding-left: 20px; }
+          .pagemain .container .window .body .message .each .content .detail_btn {
+            text-align: center;
+            width: 100px;
+            padding: 5px 15px;
+            background: #c3325f;
+            color: #fff; }
+          .pagemain .container .window .body .message .each .content.custom {
+            padding-top: 10px;
+            padding-bottom: 10px;
+            background: #fff;
+            border: 1px dotted #ccc; }
+            .pagemain .container .window .body .message .each .content.custom .accept {
+              padding: 5px 10px;
+              background: #008040;
+              color: #fff;
+              margin-right: 10px;
+              cursor: pointer; }
+            .pagemain .container .window .body .message .each .content.custom .deny {
+              padding: 5px 10px;
+              background: #c3325f;
+              color: #fff;
+              cursor: pointer; }
+        .pagemain .container .window .body .message .agent .head {
+          color: #008040; }
+        .pagemain .container .window .body .message .service .head {
+          color: blue; }
+      .pagemain .container .window .options {
+        height: 45px;
+        border-bottom: 1px solid #ccc; }
+        .pagemain .container .window .options .options_inner {
+          padding: 0 15px;
+          cursor: pointer; }
+          .pagemain .container .window .options .options_inner:hover {
+            background: #ccc; }
+          .pagemain .container .window .options .options_inner .pic {
+            position: absolute;
+            right: 0;
+            top: 0;
+            font-size: 0px;
+            width: 62px;
+            height: 40px;
+            opacity: 0;
+            cursor: pointer; }
+        .pagemain .container .window .options .options_service {
+          position: absolute;
+          top: -272px;
+          left: 15px;
+          height: 274px;
+          width: 482px;
+          background: #fff;
+          border: 1px solid #dedede;
+          overflow-y: scroll; }
+          .pagemain .container .window .options .options_service .options_items {
+            min-height: 56px;
+            border-bottom: 1px solid #dedede;
+            padding: 10px 0;
+            margin: 0 15px;
+            color: #333; }
+            .pagemain .container .window .options .options_service .options_items .info-con {
+              font-size: 13px;
+              margin-left: 10px; }
+              .pagemain .container .window .options .options_service .options_items .info-con .service_title {
+                font-size: 16px;
+                font-weight: 600; }
+              .pagemain .container .window .options .options_service .options_items .info-con .p-g-con {
+                margin-top: 4px; }
+                .pagemain .container .window .options .options_service .options_items .info-con .p-g-con .prices {
+                  color: #f60;
+                  padding-right: 10px; }
+                .pagemain .container .window .options .options_service .options_items .info-con .p-g-con .goods_id {
+                  padding: 0 10px; }
+            .pagemain .container .window .options .options_service .options_items .service_btn {
+              width: 50px;
+              text-align: center;
+              font-size: 12px; }
+              .pagemain .container .window .options .options_service .options_items .service_btn .ways {
+                background: #2e3238;
+                text-align: center;
+                cursor: pointer;
+                color: #fff; }
+        .pagemain .container .window .options .options_words {
+          position: absolute;
+          top: -272px;
+          left: 40px;
+          height: 274px;
+          width: 482px;
+          background: #fff;
+          border: 1px solid #dedede; }
+          .pagemain .container .window .options .options_words .head {
+            height: 40px;
+            border-bottom: 1px solid #ccc;
+            font-size: 14px; }
+            .pagemain .container .window .options .options_words .head .options_items {
+              display: inline-block;
+              padding: 0 15px;
+              line-height: 40px;
+              cursor: pointer; }
+              .pagemain .container .window .options .options_words .head .options_items:hover {
+                background: #c3c3c3; }
+          .pagemain .container .window .options .options_words .words_body {
+            overflow-y: scroll; }
+            .pagemain .container .window .options .options_words .words_body .options_cur_item {
+              padding: 5px 0px;
+              min-height: 40px;
+              line-height: 20px;
+              border-bottom: 1px solid #e2e2e2; }
+              .pagemain .container .window .options .options_words .words_body .options_cur_item .left {
+                padding-left: 15px;
+                word-break: break-all; }
+              .pagemain .container .window .options .options_words .words_body .options_cur_item .words_send {
+                background: #2e3238;
+                cursor: pointer;
+                color: #fff;
+                font-size: 12px;
+                padding: 5px 15px;
+                margin: 0px 15px; }
+        .pagemain .container .window .options .options_face {
+          position: absolute;
+          top: -272px;
+          left: 15px;
+          height: 274px;
+          width: 496px;
+          background: #fff;
+          border: 1px solid #dedede;
+          overflow: auto;
+          font-size: 0; }
+          .pagemain .container .window .options .options_face .face_item {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border-right: 1px solid #d3e4dc;
+            border-bottom: 1px solid #d3e4dc;
+            cursor: pointer; }
+        .pagemain .container .window .options .end_session {
+          padding: 0px 15px;
+          cursor: pointer; }
+      .pagemain .container .window .enter {
+        height: 150px; }
+        .pagemain .container .window .enter .text {
+          display: block;
+          width: 100%;
+          height: 100%;
+          font-size: 14px;
+          border: 0;
+          border-bottom: 1px solid #ccc;
+          resize: none;
+          outline: 0;
+          padding-left: 20px;
+          background: none; }
+      .pagemain .container .window .send {
+        height: 45px; }
+        .pagemain .container .window .send .btn {
+          border-radius: 4px;
+          background: #163758;
+          width: 100px;
+          height: 30px;
+          color: #fff;
+          cursor: pointer; }
+          .pagemain .container .window .send .btn:hover {
+            background: #0055aa; }
+    .pagemain .container .fade_content {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      background: rgba(0, 0, 0, 0.7); }
+      .pagemain .container .fade_content .login {
+        background: #fff;
+        border-radius: 4px; }
+        .pagemain .container .fade_content .login .login_head {
+          font-size: 18px;
+          font-weight: 600;
+          border-bottom: 1px solid #ccc;
+          padding: 15px; }
+        .pagemain .container .fade_content .login .login_body {
+          padding: 15px;
+          border-bottom: 1px solid #ccc; }
+          .pagemain .container .fade_content .login .login_body .login_type {
+            width: 116px;
+            height: 116px;
+            border: 2px solid #fff;
+            border-radius: 4px;
+            cursor: pointer; }
+            .pagemain .container .fade_content .login .login_body .login_type.cur {
+              border: 2px solid dodgerblue; }
+        .pagemain .container .fade_content .login .login_bot {
+          padding: 15px; }
+          .pagemain .container .fade_content .login .login_bot .login_type_2 {
+            height: 32px;
+            border: 2px solid #fff;
+            border-radius: 4px;
+            cursor: pointer; }
+            .pagemain .container .fade_content .login .login_bot .login_type_2.cur {
+              border: 2px solid palevioletred; }
+        .pagemain .container .fade_content .login .login_form {
+          background: #f2f2f2;
+          padding: 10px 15px 10px 5px; }
+          .pagemain .container .fade_content .login .login_form .form_inner {
+            margin-left: 10px; }
+            .pagemain .container .fade_content .login .login_form .form_inner input {
+              width: 140px;
+              height: 30px;
+              border: none;
+              font-size: 16px;
+              padding-left: 10px;
+              outline: none; }
+          .pagemain .container .fade_content .login .login_form .btn {
+            background: #fff;
+            width: 76px;
+            height: 76px;
+            border: 2px solid lightseagreen;
+            cursor: pointer; }
+            .pagemain .container .fade_content .login .login_form .btn:hover {
+              border: 2px solid #fff;
+              background: lightseagreen;
+              color: #fff; }

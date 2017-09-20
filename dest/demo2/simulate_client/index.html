@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Imcore send message test</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="../lib/css/bootstrap.min.css">
+    <script src="../lib/mod.js"></script>
+	<script src="../lib/jquery.min.js"></script>
+	<script src="../lib/bootstrap.min.js"></script>
+    <script src="../lib/hashes.min.js"></script>
+    <script src="../lib/inflate.min.js"></script>
+    <script src="../lib/mqttws31.js" type="text/javascript"></script>
+    <script src="../common/util.js" type="text/javascript"></script>
+    <script src="../common/entity_type.js" type="text/javascript"></script>
+	<script src="../common/auth_encrypt.js" type="text/javascript"></script>
+    <script src="./mqtt_client.js" type="text/javascript"></script>
+    <script src="main.js" type="text/javascript"></script>
+</head>
+
+<body>
+
+<form class="form-horizontal" role="form" style="width:800px" id="form_project">
+    <div class="form-group">
+        <label class="col-sm-2 control-label">project:</label>
+        <div class="col-sm-10">
+			<select class="form-control" name="project">
+			</select>
+        </div>
+		<button type="button" class="btn btn-default" id="btn_switch_project">Switch</button>
+    </div>
+</form>
+<h1>----------------------------------</h1>
+
+<br>
+<form class="form-horizontal" role="form" style="width:800px" id="form_login">
+    <div class="form-group">
+        <label class="col-sm-2 control-label">hostname:</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" name="hostname" value="localhost">
+        </div>
+
+        <label class="col-sm-2 control-label">port:</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" name="port" value="8983">
+        </div>
+
+        <label class="col-sm-2 control-label">user_type:</label>
+        <div class="col-sm-10">
+            <select class="form-control" name="user_type">
+            </select>
+        </div>
+
+        <label class="col-sm-2 control-label">user_id:</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" name="user_id" value="100048">
+        </div>
+    </div>
+    <button type="button" class="btn btn-default" id="btn_login">Login</button>
+</form>
+
+<br>
+<form class="form-horizontal" role="form" style="width:800px" id="form_group">
+    <div class="form-group">
+        <label class="col-sm-2 control-label">type:</label>
+        <div class="col-sm-10">
+            <select class="form-control" name="group_type">
+            </select>
+        </div>
+
+        <label class="col-sm-2 control-label">port:</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" name="group_id" value="10002">
+        </div>
+    </div>
+    <button type="button" class="btn btn-default" id="btn_join">Join</button>
+    <button type="button" class="btn btn-default" id="btn_left">Left</button>
+</form>
+
+<br>
+<form class="form-horizontal" role="form" style="width:800px" id="form_state">
+    <div class="form-group">
+        <label class="col-sm-2 control-label">type:</label>
+        <div class="col-sm-10">
+            <select class="form-control" name="state_type">
+            </select>
+        </div>
+
+        <label class="col-sm-2 control-label">port:</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" name="state_id" value="100050">
+        </div>
+    </div>
+    <button type="button" class="btn btn-default" id="btn_sub">sub</button>
+    <button type="button" class="btn btn-default" id="btn_unsub">unsub</button>
+</form>
+
+</body>
+</html>

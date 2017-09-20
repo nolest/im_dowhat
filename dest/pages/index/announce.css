@@ -1,0 +1,424 @@
+.no-u-s {
+  -webkit-user-select: none;
+  cursor: pointer; }
+
+.pagemain {
+  background: #fff; }
+  .pagemain .container {
+    position: relative;
+    height: 100%;
+    width: 100%; }
+    .pagemain .container .list {
+      background: #2e3238;
+      color: #fff;
+      border-right: 1px solid #ccc;
+      width: 320px; }
+      .pagemain .container .list .empty {
+        height: 45px; }
+      .pagemain .container .list .meeting_list {
+        overflow-y: scroll;
+        border-top: 1px solid #ccc;
+        border-bottom: 1px solid #ccc; }
+        .pagemain .container .list .meeting_list .meeting_item {
+          position: relative;
+          padding: 10px;
+          border-bottom: 1px solid #ccc;
+          cursor: pointer; }
+          .pagemain .container .list .meeting_list .meeting_item:last-child {
+            border-bottom: none; }
+          .pagemain .container .list .meeting_list .meeting_item.cur {
+            background: #163758; }
+          .pagemain .container .list .meeting_list .meeting_item .details {
+            margin-left: 10px; }
+            .pagemain .container .list .meeting_list .meeting_item .details .name {
+              word-break: break-all; }
+            .pagemain .container .list .meeting_list .meeting_item .details .btn {
+              padding-top: 5px;
+              cursor: pointer; }
+              .pagemain .container .list .meeting_list .meeting_item .details .btn .inn {
+                margin-right: 10px;
+                padding: 2px 5px;
+                color: #fff;
+                font-size: 12px;
+                height: 14px;
+                line-height: 14px; }
+              .pagemain .container .list .meeting_list .meeting_item .details .btn .silence {
+                background: darkred; }
+                .pagemain .container .list .meeting_list .meeting_item .details .btn .silence:hover {
+                  background: red; }
+              .pagemain .container .list .meeting_list .meeting_item .details .btn .announce {
+                background: forestgreen; }
+                .pagemain .container .list .meeting_list .meeting_item .details .btn .announce:hover {
+                  background: greenyellow; }
+          .pagemain .container .list .meeting_list .meeting_item .tag {
+            position: absolute;
+            top: 0;
+            right: 0;
+            margin: 10px;
+            background: darkred;
+            color: #fff;
+            font-size: 12px;
+            height: 14px;
+            line-height: 14px;
+            padding: 2px 5px; }
+      .pagemain .container .list .list_more {
+        height: 45px;
+        cursor: pointer;
+        background: #2e3238; }
+        .pagemain .container .list .list_more:hover {
+          background: #3e4238; }
+    .pagemain .container .window {
+      background: #f2f2f2; }
+      .pagemain .container .window .title {
+        padding: 0 15px;
+        height: 45px;
+        border-bottom: 1px solid #ccc; }
+      .pagemain .container .window .body {
+        border-bottom: 1px solid #ccc;
+        position: relative; }
+        .pagemain .container .window .body .switch_anno_panel_normal {
+          height: 0;
+          overflow: hidden;
+          background: #dddddd;
+          transition: height 300ms; }
+          .pagemain .container .window .body .switch_anno_panel_normal .detail {
+            padding: 15px 0px 15px 15px; }
+          .pagemain .container .window .body .switch_anno_panel_normal .right_con {
+            padding-right: 15px; }
+        .pagemain .container .window .body .open {
+          height: 200px;
+          overflow-y: scroll;
+          transition: height 300ms; }
+        .pagemain .container .window .body .message_con {
+          padding-top: 5px;
+          overflow-y: scroll; }
+          .pagemain .container .window .body .message_con .history_more {
+            margin-bottom: 5px;
+            color: #2786e4;
+            font-size: 14px;
+            cursor: pointer; }
+            .pagemain .container .window .body .message_con .history_more:hover {
+              text-decoration: underline; }
+          .pagemain .container .window .body .message_con .message .each .head {
+            padding-left: 5px; }
+          .pagemain .container .window .body .message_con .message .each .content {
+            margin-top: 8px;
+            margin-bottom: 8px;
+            padding-left: 20px; }
+            .pagemain .container .window .body .message_con .message .each .content .inn {
+              background: #ccc;
+              padding: 2px 8px;
+              font-size: 12px;
+              height: 16px;
+              border-radius: 8px; }
+            .pagemain .container .window .body .message_con .message .each .content .detail_btn {
+              text-align: center;
+              width: 100px;
+              padding: 5px 15px;
+              background: #c3325f;
+              color: #fff; }
+            .pagemain .container .window .body .message_con .message .each .content.custom {
+              margin-left: 20px;
+              padding-top: 10px;
+              padding-bottom: 10px;
+              background: #fff;
+              border: 1px dotted #ccc; }
+              .pagemain .container .window .body .message_con .message .each .content.custom .accept {
+                padding: 5px 10px;
+                background: #008040;
+                color: #fff;
+                margin-right: 10px;
+                cursor: pointer; }
+              .pagemain .container .window .body .message_con .message .each .content.custom .deny {
+                padding: 5px 10px;
+                background: #c3325f;
+                color: #fff;
+                cursor: pointer; }
+          .pagemain .container .window .body .message_con .message .agent .head {
+            color: #008040; }
+          .pagemain .container .window .body .message_con .message .service .head {
+            color: blue; }
+      .pagemain .container .window .options {
+        height: 45px;
+        border-bottom: 1px solid #ccc; }
+        .pagemain .container .window .options .options_inner {
+          padding: 0 15px;
+          cursor: pointer; }
+          .pagemain .container .window .options .options_inner:hover {
+            background: #ccc; }
+          .pagemain .container .window .options .options_inner .pic {
+            position: absolute;
+            right: 0;
+            top: 0;
+            font-size: 0px;
+            width: 62px;
+            height: 40px;
+            opacity: 0;
+            cursor: pointer; }
+        .pagemain .container .window .options .options_service {
+          position: absolute;
+          top: -322px;
+          left: 15px;
+          height: 324px;
+          width: 576px;
+          background: #fff;
+          border: 1px solid #dedede; }
+          .pagemain .container .window .options .options_service .album_head {
+            height: 120px;
+            padding: 0px 20px; }
+            .pagemain .container .window .options .options_service .album_head .al_img_con {
+              font-size: 0;
+              height: 80px;
+              width: 80px;
+              overflow: hidden;
+              border-radius: 40px;
+              background: #fff; }
+          .pagemain .container .window .options .options_service .album_list {
+            overflow-y: auto;
+            width: 180px;
+            border-right: 1px solid #dedede; }
+            .pagemain .container .window .options .options_service .album_list .album_list_item {
+              padding-left: 15px;
+              font-size: 14px;
+              min-height: 80px;
+              border-bottom: 1px solid #dedede;
+              cursor: pointer; }
+              .pagemain .container .window .options .options_service .album_list .album_list_item:last-child {
+                border-bottom: none; }
+              .pagemain .container .window .options .options_service .album_list .album_list_item:hover {
+                background: #dedede; }
+              .pagemain .container .window .options .options_service .album_list .album_list_item.cur {
+                background: #dedede; }
+          .pagemain .container .window .options .options_service .album_creations_list {
+            overflow-y: auto; }
+            .pagemain .container .window .options .options_service .album_creations_list .album_creations_list_item {
+              padding: 10px;
+              border-bottom: 1px solid #dedede; }
+              .pagemain .container .window .options .options_service .album_creations_list .album_creations_list_item:first-child {
+                border-top: none; }
+              .pagemain .container .window .options .options_service .album_creations_list .album_creations_list_item:last-child {
+                border-bottom: none; }
+              .pagemain .container .window .options .options_service .album_creations_list .album_creations_list_item .ways {
+                background: #2e3238;
+                cursor: pointer;
+                color: #fff;
+                font-size: 12px;
+                width: 50px;
+                height: 30px; }
+          .pagemain .container .window .options .options_service .options_items {
+            min-height: 56px;
+            border-bottom: 1px solid #dedede;
+            padding: 10px 0;
+            margin: 0 15px;
+            color: #333; }
+            .pagemain .container .window .options .options_service .options_items .info-con {
+              font-size: 13px;
+              margin-left: 10px; }
+              .pagemain .container .window .options .options_service .options_items .info-con .service_title {
+                font-size: 16px;
+                font-weight: 600; }
+              .pagemain .container .window .options .options_service .options_items .info-con .p-g-con {
+                margin-top: 4px; }
+                .pagemain .container .window .options .options_service .options_items .info-con .p-g-con .prices {
+                  color: #f60;
+                  padding-right: 10px; }
+                .pagemain .container .window .options .options_service .options_items .info-con .p-g-con .goods_id {
+                  padding: 0 10px; }
+            .pagemain .container .window .options .options_service .options_items .service_btn {
+              width: 50px;
+              text-align: center;
+              font-size: 12px; }
+              .pagemain .container .window .options .options_service .options_items .service_btn .ways {
+                background: #2e3238;
+                text-align: center;
+                cursor: pointer;
+                color: #fff; }
+        .pagemain .container .window .options .options_words {
+          position: absolute;
+          top: -272px;
+          left: 40px;
+          height: 274px;
+          width: 482px;
+          background: #fff;
+          border: 1px solid #dedede; }
+          .pagemain .container .window .options .options_words .head {
+            height: 40px;
+            border-bottom: 1px solid #ccc;
+            font-size: 14px; }
+            .pagemain .container .window .options .options_words .head .options_items {
+              display: inline-block;
+              padding: 0 15px;
+              line-height: 40px;
+              cursor: pointer; }
+              .pagemain .container .window .options .options_words .head .options_items:hover {
+                background: #c3c3c3; }
+          .pagemain .container .window .options .options_words .words_body {
+            overflow-y: scroll; }
+            .pagemain .container .window .options .options_words .words_body .options_cur_item {
+              padding: 5px 0px;
+              min-height: 40px;
+              line-height: 20px;
+              border-bottom: 1px solid #e2e2e2; }
+              .pagemain .container .window .options .options_words .words_body .options_cur_item .left {
+                padding-left: 15px;
+                word-break: break-all; }
+              .pagemain .container .window .options .options_words .words_body .options_cur_item .words_send {
+                background: #2e3238;
+                cursor: pointer;
+                color: #fff;
+                font-size: 12px;
+                padding: 5px 15px;
+                margin: 0px 15px; }
+        .pagemain .container .window .options .options_face {
+          position: absolute;
+          top: -272px;
+          left: 15px;
+          height: 274px;
+          width: 496px;
+          background: #fff;
+          border: 1px solid #dedede;
+          overflow: auto;
+          font-size: 0; }
+          .pagemain .container .window .options .options_face .face_item {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border-right: 1px solid #d3e4dc;
+            border-bottom: 1px solid #d3e4dc;
+            cursor: pointer; }
+        .pagemain .container .window .options .end_session {
+          padding: 0px 15px;
+          cursor: pointer; }
+      .pagemain .container .window .enter {
+        height: 150px; }
+        .pagemain .container .window .enter .text {
+          display: block;
+          width: 100%;
+          height: 100%;
+          font-size: 14px;
+          border: 0;
+          border-bottom: 1px solid #ccc;
+          resize: none;
+          outline: 0;
+          padding-left: 20px;
+          background: none; }
+      .pagemain .container .window .send {
+        padding-right: 8px;
+        height: 45px; }
+        .pagemain .container .window .send .btn {
+          border-radius: 4px;
+          background: #163758;
+          padding: 0px 10px;
+          height: 30px;
+          color: #fff;
+          cursor: pointer; }
+          .pagemain .container .window .send .btn:hover {
+            background: #0055aa; }
+    .pagemain .container .pop {
+      background: #ccc;
+      color: #fff;
+      border-left: 1px solid #ccc;
+      width: 200px; }
+      .pagemain .container .pop .pop_head {
+        height: 45px;
+        color: #fff; }
+        .pagemain .container .pop .pop_head .cur {
+          background: #2e3238; }
+      .pagemain .container .pop .follow_box {
+        padding-left: 10px;
+        height: 45px;
+        background: #2e3238; }
+      .pagemain .container .pop .pop_body {
+        background: #2e3238;
+        overflow-y: auto; }
+        .pagemain .container .pop .pop_body .pop_item {
+          margin-bottom: 100px; }
+          .pagemain .container .pop .pop_body .pop_item .pop_item_content {
+            margin-left: 10px;
+            word-break: break-all; }
+        .pagemain .container .pop .pop_body .group_member_list_item {
+          margin: 5px 0px; }
+          .pagemain .container .pop .pop_body .group_member_list_item .status {
+            padding: 2px 5px;
+            color: #fff;
+            font-size: 12px;
+            height: 14px;
+            line-height: 14px; }
+            .pagemain .container .pop .pop_body .group_member_list_item .status.silence {
+              background: darkred; }
+            .pagemain .container .pop .pop_body .group_member_list_item .status.no_silence {
+              background: forestgreen; }
+            .pagemain .container .pop .pop_body .group_member_list_item .status.unknown {
+              background: none; }
+          .pagemain .container .pop .pop_body .group_member_list_item .role {
+            padding: 2px 5px;
+            color: #fff;
+            font-size: 12px;
+            height: 14px;
+            line-height: 14px; }
+          .pagemain .container .pop .pop_body .group_member_list_item .menber_control .inn {
+            margin-right: 10px;
+            padding: 2px 5px;
+            color: #fff;
+            font-size: 12px;
+            height: 14px;
+            line-height: 14px; }
+          .pagemain .container .pop .pop_body .group_member_list_item .menber_control .silence {
+            background: darkred; }
+            .pagemain .container .pop .pop_body .group_member_list_item .menber_control .silence:hover {
+              background: red; }
+    .pagemain .container .fade_content {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      background: rgba(0, 0, 0, 0.7); }
+      .pagemain .container .fade_content .login {
+        background: #fff;
+        border-radius: 4px; }
+        .pagemain .container .fade_content .login .login_head {
+          font-size: 18px;
+          font-weight: 600;
+          border-bottom: 1px solid #ccc;
+          padding: 15px; }
+        .pagemain .container .fade_content .login .login_body {
+          padding: 15px;
+          border-bottom: 1px solid #ccc; }
+          .pagemain .container .fade_content .login .login_body .login_type {
+            width: 116px;
+            height: 116px;
+            border: 2px solid #fff;
+            border-radius: 4px;
+            cursor: pointer; }
+            .pagemain .container .fade_content .login .login_body .login_type.cur {
+              border: 2px solid dodgerblue; }
+        .pagemain .container .fade_content .login .login_bot {
+          padding: 15px; }
+          .pagemain .container .fade_content .login .login_bot .login_type_2 {
+            height: 32px;
+            border: 2px solid #fff;
+            border-radius: 4px;
+            cursor: pointer; }
+            .pagemain .container .fade_content .login .login_bot .login_type_2.cur {
+              border: 2px solid palevioletred; }
+        .pagemain .container .fade_content .login .login_form {
+          background: #f2f2f2;
+          padding: 10px 15px 10px 5px; }
+          .pagemain .container .fade_content .login .login_form .form_inner {
+            margin-left: 10px; }
+            .pagemain .container .fade_content .login .login_form .form_inner input {
+              width: 140px;
+              height: 30px;
+              border: none;
+              font-size: 16px;
+              padding-left: 10px;
+              outline: none; }
+          .pagemain .container .fade_content .login .login_form .btn {
+            background: #fff;
+            width: 76px;
+            height: 76px;
+            border: 2px solid lightseagreen;
+            cursor: pointer; }
+            .pagemain .container .fade_content .login .login_form .btn:hover {
+              border: 2px solid #fff;
+              background: lightseagreen;
+              color: #fff; }
