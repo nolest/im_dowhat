@@ -25,31 +25,31 @@
     * 鉴权
     ```javascript
         mqtt_auth
-    	mqtt_login
-    	get_auth
+        mqtt_login
+        get_auth
     ```
     * 验证
     ```javascript
-    	get_ali_token
-    	calculate
+        get_ali_token
+        calculate
     ```
     * 角色选择
     ```javascript
-    	change_login_type
-    	ok_login_type
-    	go_to_login
+        change_login_type
+        ok_login_type
+        go_to_login
     ```
     * mqtt链接状态
     ```javascript
-    	login_success
-    	connect_lost
-    	message_receive
-    	onSubscribe
+        login_success
+        connect_lost
+        message_receive
+        onSubscribe
         onSubscribe_barrage
     ```
     * 新增消息
     ```javascript
-    	resolve_new_receive
+        resolve_new_receive
     ```
     * 聊天室列表
     ```javascript
