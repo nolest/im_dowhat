@@ -53,8 +53,8 @@
     ```
     * 聊天室列表
     ```javascript
-    	get_service_list
-    	serviceId_click
+        get_service_list
+        serviceId_click
         go_to_meeting
         get_meeting_list
         get_group_info
@@ -91,15 +91,15 @@
     ```
     * 商品列表
     ```javascript
-    	fetch_goods_list
-    	options_service
-    	resource_send
+        fetch_goods_list
+        options_service
+        resource_send
         fetch_treasure_list
         fetch_creations_info
     ```
     * 输入状态维护
     ```javascript
-    	textarea_change
+        textarea_change
     ```
     * 禁言操作
     ```javascript
